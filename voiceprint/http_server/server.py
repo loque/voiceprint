@@ -14,7 +14,7 @@ def get_models():
     for entry in os.listdir(models_dir):
         entry_path = os.path.join(models_dir, entry)
         if os.path.isdir(entry_path):
-            model_json_path = os.path.join(entry_path, 'model.json')
+            model_json_path = os.path.join(entry_path, 'metadata.json')
             if os.path.isfile(model_json_path):
                 try:
                     with open(model_json_path, 'r') as f:
@@ -27,27 +27,28 @@ def get_models():
 @main.route('/models', methods=['POST'])
 def create_model():
     data = request.get_json()
-    if not data or 'voices' not in data or 'model_name' not in data:
-        return jsonify({'error': 'Missing voices or model_name in request body'}), 400
+    if not data or 'voices' not in data or 'name' not in data:
+        return jsonify({'error': 'Missing voices or name in request body'}), 400
 
-    voices = data['voices']
-    model_name = data['model_name']
+    model_voices = data['voices']
+    model_name = data['name']
 
     # Generate a unique folder name
-    unique_folder_name = f"{model_name}_{uuid.uuid4().hex[:8]}"
-    models_dir = os.path.join(current_app.instance_path, 'models', unique_folder_name)
+    model_id = uuid.uuid4().hex[:8]
+    models_dir = os.path.join(current_app.instance_path, 'models', model_id)
     os.makedirs(models_dir, exist_ok=True)
 
-    model_json_path = os.path.join(models_dir, 'model.json')
+    model_json_path = os.path.join(models_dir, 'metadata.json')
     model_data = {
-        'model_name': model_name,
-        'voices': voices
+        'id': model_id,
+        'name': model_name,
+        'voices': model_voices
     }
     try:
         with open(model_json_path, 'w') as f:
             json.dump(model_data, f, indent=2)
         current_app.logger.info(f"Model info saved to {model_json_path}")
-        return jsonify({'message': 'Model info saved', 'folder': unique_folder_name}), 200
+        return jsonify({'message': 'Model info saved', 'folder': model_id}), 200
     except Exception as e:
         current_app.logger.error(f"Error saving model info: {e}", exc_info=True)
         return jsonify({'error': 'Failed to save model info'}), 500
