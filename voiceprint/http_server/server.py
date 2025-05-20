@@ -5,8 +5,27 @@ import json
 
 main = Blueprint('main', __name__)
 
-@main.route('/train_model', methods=['POST'])
-def train_model():
+@main.route('/models', methods=['GET'])
+def get_models():
+    models_dir = os.path.join(current_app.instance_path, 'models')
+    models = []
+    if not os.path.exists(models_dir):
+        return jsonify(models), 200
+    for entry in os.listdir(models_dir):
+        entry_path = os.path.join(models_dir, entry)
+        if os.path.isdir(entry_path):
+            model_json_path = os.path.join(entry_path, 'model.json')
+            if os.path.isfile(model_json_path):
+                try:
+                    with open(model_json_path, 'r') as f:
+                        model_data = json.load(f)
+                        models.append(model_data)
+                except Exception as e:
+                    current_app.logger.error(f"Error reading {model_json_path}: {e}")
+    return jsonify(models), 200
+
+@main.route('/models', methods=['POST'])
+def create_model():
     data = request.get_json()
     if not data or 'voices' not in data or 'model_name' not in data:
         return jsonify({'error': 'Missing voices or model_name in request body'}), 400
