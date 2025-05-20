@@ -18,7 +18,7 @@ def get_voices():
     return jsonify(voices), 200
 
 @main.route('/identify', methods=['POST'])
-def identify_endpoint():
+def identify():
     if 'audio_file' not in request.files:
         return jsonify({"error": "No audio file part"}), 400
     
@@ -59,7 +59,7 @@ def identify_endpoint():
             "processing_time_ms": response.processing_time_ms
         }), 200
     except Exception as e:
-        current_app.logger.error(f"Error in identify_endpoint: {e}", exc_info=True)
+        current_app.logger.error(f"Error in identify endpoint: {e}", exc_info=True)
         return jsonify({"error": "An internal server error occurred"}), 500
     finally:
         # Clean up the temporary file
