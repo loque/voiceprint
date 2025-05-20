@@ -2,7 +2,7 @@
 vp_env
 dataset/*
 voiceprint/model/*
-voiceprint/server/__pycache__
-voiceprint/server/instance
+voiceprint/http_server/__pycache__
+voiceprint/http_server/instance
 
 !.gitkeep
