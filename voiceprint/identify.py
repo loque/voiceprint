@@ -5,6 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 import sys
 import os
 
+# TODO: use the Interpreter class from interpreter.py
 def identify(
         audio_file,
         model_path='model/voiceprint_model.h5',
