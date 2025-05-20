@@ -1,7 +1,37 @@
 import os
 from flask import Blueprint, request, jsonify, current_app
+import uuid
+import json
 
 main = Blueprint('main', __name__)
+
+@main.route('/train_model', methods=['POST'])
+def train_model():
+    data = request.get_json()
+    if not data or 'voices' not in data or 'model_name' not in data:
+        return jsonify({'error': 'Missing voices or model_name in request body'}), 400
+
+    voices = data['voices']
+    model_name = data['model_name']
+
+    # Generate a unique folder name
+    unique_folder_name = f"{model_name}_{uuid.uuid4().hex[:8]}"
+    models_dir = os.path.join(current_app.instance_path, 'models', unique_folder_name)
+    os.makedirs(models_dir, exist_ok=True)
+
+    model_json_path = os.path.join(models_dir, 'model.json')
+    model_data = {
+        'model_name': model_name,
+        'voices': voices
+    }
+    try:
+        with open(model_json_path, 'w') as f:
+            json.dump(model_data, f, indent=2)
+        current_app.logger.info(f"Model info saved to {model_json_path}")
+        return jsonify({'message': 'Model info saved', 'folder': unique_folder_name}), 200
+    except Exception as e:
+        current_app.logger.error(f"Error saving model info: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to save model info'}), 500
 
 @main.route('/voices', methods=['GET'])
 def get_voices():
