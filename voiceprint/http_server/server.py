@@ -2,6 +2,7 @@ import os
 from flask import Blueprint, request, jsonify, current_app
 import uuid
 import json
+from voiceprint.model import Model
 
 main = Blueprint('main', __name__)
 
@@ -32,26 +33,22 @@ def create_model():
 
     model_voices = data['voices']
     model_name = data['name']
-
-    # Generate a unique folder name
-    model_id = uuid.uuid4().hex[:8]
-    models_dir = os.path.join(current_app.instance_path, 'models', model_id)
-    os.makedirs(models_dir, exist_ok=True)
-
-    model_json_path = os.path.join(models_dir, 'metadata.json')
-    model_data = {
-        'id': model_id,
-        'name': model_name,
-        'voices': model_voices
-    }
+    
+    # Instantiate the Model class
+    logger = current_app.logger
+    cwd = current_app.instance_path
+    model = Model(name=model_name, voices=model_voices, logger=logger, cwd=cwd)
+    
     try:
-        with open(model_json_path, 'w') as f:
-            json.dump(model_data, f, indent=2)
-        current_app.logger.info(f"Model info saved to {model_json_path}")
-        return jsonify({'message': 'Model info saved', 'folder': model_id}), 200
+        # Extract MFCCs, train the model, and save metadata
+        model.extract_mfccs()
+        model.train()
+        model.saveMetadata()
+
+        return jsonify({'message': 'Model created successfully', 'id': model.id}), 200
     except Exception as e:
-        current_app.logger.error(f"Error saving model info: {e}", exc_info=True)
-        return jsonify({'error': 'Failed to save model info'}), 500
+        logger.error(f"Error during model creation: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to create model'}), 500
 
 @main.route('/voices', methods=['GET'])
 def get_voices():
@@ -62,8 +59,8 @@ def get_voices():
     for entry in os.listdir(voices_dir):
         entry_path = os.path.join(voices_dir, entry)
         if os.path.isdir(entry_path):
-            wav_files = [f for f in os.listdir(entry_path)
-                         if os.path.isfile(os.path.join(entry_path, f)) and f.lower().endswith('.wav')]
+            wav_files = sorted([f for f in os.listdir(entry_path)
+                                if os.path.isfile(os.path.join(entry_path, f)) and f.lower().endswith('.wav')])
             voices[entry] = wav_files
     return jsonify(voices), 200
 

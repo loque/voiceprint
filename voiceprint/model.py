@@ -25,6 +25,9 @@ class Model:
       self.label_mapping = None
       self.scaler_mean = None
       self.scaler_scale = None
+      
+      # Ensure the model directory exists
+      os.makedirs(self.dir, exist_ok=True)
   
   def saveMetadata(self):
       """
