@@ -60,7 +60,7 @@ class ModelService:
         """
         Load a model using its model_id, fetch metadata.json, and instantiate a Model object.
         """
-        model_path = os.path.join(models_path, 'models', model_id)
+        model_path = os.path.join(models_path, model_id)
         metadata_path = os.path.join(model_path, 'metadata.json')
 
         if not os.path.exists(metadata_path):

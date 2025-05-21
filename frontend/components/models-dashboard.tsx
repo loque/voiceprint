@@ -29,29 +29,36 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { createModel, loadModel, identifyVoice } from "@/lib/api";
+import { createModel } from "@/lib/api";
 import type { Model, VoiceData } from "@/lib/store";
-
-type IdentificationResult = {
-  predicted_speaker: string;
-  confidence: number;
-  all_predictions: Record<string, number>;
-  processing_time_ms: number;
-};
+import { IdentificationResult } from "@/app/models/page";
 
 type ModelsDashboardProps = {
   models: Model[];
   voices: VoiceData;
+  loadModel: ({ modelId }: { modelId: string }) => Promise<void>;
+  identifyVoice: ({
+    modelId,
+    audioFile,
+  }: {
+    modelId: string;
+    audioFile: File;
+  }) => Promise<IdentificationResult>;
 };
 
-export function ModelsDashboard({ models, voices }: ModelsDashboardProps) {
+export function ModelsDashboard({
+  models,
+  voices,
+  loadModel,
+  identifyVoice,
+}: ModelsDashboardProps) {
   const [newModelName, setNewModelName] = useState("");
   const [selectedVoices, setSelectedVoices] = useState<
     Record<string, Set<string>>
   >({});
   const [isCreatingModel, setIsCreatingModel] = useState(false);
   const [isCreatingModelOpen, setIsCreatingModelOpen] = useState(false);
-  const [activeModelId, setActiveModelId] = useState<string | null>(null);
+  const [loadedModelId, setLoadedModelId] = useState<string | null>(null);
   const [isLoadingModel, setIsLoadingModel] = useState(false);
   const [identifyFile, setIdentifyFile] = useState<File | null>(null);
   const [isIdentifying, setIsIdentifying] = useState(false);
@@ -69,10 +76,10 @@ export function ModelsDashboard({ models, voices }: ModelsDashboardProps) {
   }, [voices]);
 
   useEffect(() => {
-    // Find active model
-    const activeModel = models.find((model) => model.isActive);
-    if (activeModel) {
-      setActiveModelId(activeModel.id);
+    // Find loaded model
+    const loadedModel = models.find((model) => model.isLoaded);
+    if (loadedModel) {
+      setLoadedModelId(loadedModel.id);
     }
   }, [models]);
 
@@ -164,15 +171,10 @@ export function ModelsDashboard({ models, voices }: ModelsDashboardProps) {
   async function handleLoadModel(modelId: string) {
     try {
       setIsLoadingModel(true);
-      await loadModel(modelId);
-      setActiveModelId(modelId);
+      await loadModel({ modelId });
+      setLoadedModelId(modelId);
 
       // TODO: Update models to reflect the active state
-
-      toast({
-        title: "Model loaded",
-        description: "Model has been loaded successfully.",
-      });
     } catch (error) {
       console.error("Error loading model:", error);
       toast({
@@ -205,11 +207,14 @@ export function ModelsDashboard({ models, voices }: ModelsDashboardProps) {
 
   async function handleIdentifyVoice(e: React.FormEvent) {
     e.preventDefault();
-    if (!activeModelId || !identifyFile) return;
+    if (!loadedModelId || !identifyFile) return;
 
     try {
       setIsIdentifying(true);
-      const result = await identifyVoice(activeModelId, identifyFile);
+      const result = await identifyVoice({
+        modelId: loadedModelId,
+        audioFile: identifyFile,
+      });
       setIdentificationResult(result);
     } catch (error) {
       console.error("Error identifying voice:", error);
@@ -343,7 +348,7 @@ export function ModelsDashboard({ models, voices }: ModelsDashboardProps) {
         <Tabs defaultValue="models" className="space-y-6">
           <TabsList>
             <TabsTrigger value="models">Available Models</TabsTrigger>
-            <TabsTrigger value="identify" disabled={!activeModelId}>
+            <TabsTrigger value="identify" disabled={!loadedModelId}>
               Identify Voice
             </TabsTrigger>
           </TabsList>
@@ -377,19 +382,19 @@ export function ModelsDashboard({ models, voices }: ModelsDashboardProps) {
                   </CardContent>
                   <CardFooter>
                     <Button
-                      variant={model.isActive ? "default" : "outline"}
+                      variant={model.isLoaded ? "default" : "outline"}
                       className="w-full"
                       onClick={() => handleLoadModel(model.id)}
                       disabled={isLoadingModel}
                     >
-                      {isLoadingModel && activeModelId === model.id ? (
+                      {isLoadingModel && loadedModelId === model.id ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : model.isActive ? (
+                      ) : model.isLoaded ? (
                         <Check className="mr-2 h-4 w-4" />
                       ) : (
                         <Upload className="mr-2 h-4 w-4" />
                       )}
-                      {model.isActive ? "Active" : "Load Model"}
+                      {model.isLoaded ? "Active" : "Load Model"}
                     </Button>
                   </CardFooter>
                 </Card>

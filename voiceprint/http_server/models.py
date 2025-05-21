@@ -14,6 +14,7 @@ MODELS_PATH = os.getenv('MODELS_PATH')
 
 @models.route('', methods=['GET'])
 def get_models():
+    # TODO: add property `isLoaded` to model
     models: List[Dict[str, object]] = []
     if not os.path.exists(MODELS_PATH):
         return jsonify(models), 200
@@ -59,7 +60,7 @@ def create_model():
         logger.error(f"Error during model creation: {e}", exc_info=True)
         return jsonify({'error': 'Failed to create model'}), 500
 
-@models.route('/<model_id>', methods=['post'])
+@models.route('/<model_id>', methods=['PUT'])
 def load_model(model_id):
     try:
         current_app.config['MODEL_SERVICE'] = ModelService.load(model_id=model_id, models_path=MODELS_PATH, logger=current_app.logger)
@@ -69,12 +70,14 @@ def load_model(model_id):
         current_app.logger.error(f"Error loading model {model_id}: {e}", exc_info=True)
         return jsonify({"error": "Failed to load model"}), 500
 
-@models.route('/models/<model_id>/identify', methods=['POST'])
-def identify_with_model(model_id):
-    if 'audio_file' not in request.files:
+@models.route('/<model_id>/identify', methods=['POST'])
+def identify_voice(model_id):
+    if 'file' not in request.files:
         return jsonify({"error": "No audio file part"}), 400
     
-    file = request.files['audio_file']
+    # TODO: validate the model_id
+    
+    file = request.files['file']
     
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
