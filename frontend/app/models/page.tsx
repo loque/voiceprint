@@ -3,6 +3,7 @@ import { ModelsDashboard } from "@/components/models-dashboard";
 import { API_BASE_URL } from "@/lib/api";
 import ky from "ky";
 import { revalidatePath } from "next/cache";
+import { VoiceData } from "@/lib/store";
 
 export const metadata: Metadata = {
   title: "Models Dashboard | VoicePrint",
@@ -22,6 +23,26 @@ export default async function ModelsPage() {
 
   const voicesData = await fetch(`${API_BASE_URL}/voices`);
   const voices = await voicesData.json();
+
+  async function createModel({
+    name,
+    voices,
+  }: {
+    name: string;
+    voices: VoiceData;
+  }) {
+    "use server";
+    await ky
+      .post(`${API_BASE_URL}/models`, {
+        json: {
+          name,
+          voices,
+        },
+        timeout: false,
+      })
+      .json();
+    revalidatePath("/models");
+  }
 
   async function loadModel({ modelId }: { modelId: string }) {
     "use server";
@@ -49,6 +70,7 @@ export default async function ModelsPage() {
     <ModelsDashboard
       models={models}
       voices={voices}
+      createModel={createModel}
       loadModel={loadModel}
       identifyVoice={identifyVoice}
     />

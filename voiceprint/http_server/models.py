@@ -47,7 +47,7 @@ def create_model():
     
     # Instantiate the Model class
     logger = current_app.logger
-    model = ModelService.create(name=model_name, voices=model_voices, logger=logger, cwd=MODELS_PATH)
+    model = ModelService.create(name=model_name, voices=model_voices, logger=logger, models_path=MODELS_PATH)
     
     try:
         # Extract MFCCs, train the model, and save metadata

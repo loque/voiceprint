@@ -29,13 +29,19 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { createModel } from "@/lib/api";
 import type { Model, VoiceData } from "@/lib/store";
 import { IdentificationResult } from "@/app/models/page";
 
 type ModelsDashboardProps = {
   models: Model[];
   voices: VoiceData;
+  createModel: ({
+    name,
+    voices,
+  }: {
+    name: string;
+    voices: VoiceData;
+  }) => Promise<void>;
   loadModel: ({ modelId }: { modelId: string }) => Promise<void>;
   identifyVoice: ({
     modelId,
@@ -49,6 +55,7 @@ type ModelsDashboardProps = {
 export function ModelsDashboard({
   models,
   voices,
+  createModel,
   loadModel,
   identifyVoice,
 }: ModelsDashboardProps) {
@@ -120,7 +127,7 @@ export function ModelsDashboard({
     if (!newModelName.trim()) return;
 
     // Convert selectedVoices to the format expected by the API
-    const selectedVoicesFormatted: Record<string, string[]> = {};
+    const selectedVoicesFormatted: VoiceData = {};
     Object.entries(selectedVoices).forEach(([voiceName, samples]) => {
       if (samples.size > 0) {
         selectedVoicesFormatted[voiceName] = Array.from(samples);
@@ -139,7 +146,10 @@ export function ModelsDashboard({
 
     try {
       setIsCreatingModel(true);
-      await createModel(selectedVoicesFormatted, newModelName);
+      await createModel({
+        name: newModelName,
+        voices: selectedVoicesFormatted,
+      });
 
       // Reset form
       setNewModelName("");
