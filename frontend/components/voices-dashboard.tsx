@@ -189,12 +189,6 @@ export function VoicesDashboard({
           </p>
         </div>
         <Dialog open={isAddingVoiceOpen} onOpenChange={setIsAddingVoiceOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Voice
-            </Button>
-          </DialogTrigger>
           <DialogContent>
             <form onSubmit={handleAddVoice}>
               <DialogHeader>
@@ -243,6 +237,10 @@ export function VoicesDashboard({
       ) : (
         <div className="flex gap-6 w-full">
           <div className="flex flex-col gap-6 w-80">
+            <Button onClick={() => setIsAddingVoiceOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Voice
+            </Button>
             {Object.entries(voices).map(([voiceName, samples]) => (
               <div
                 key={voiceName}
