@@ -63,8 +63,18 @@ def get_voices():
             voices[entry] = wav_files
     return jsonify(voices), 200
 
-@main.route('/identify', methods=['POST'])
-def identify():
+@main.route('/models/<model_id>', methods=['post'])
+def select_model(model_id):
+    try:
+        current_app.config['MODEL_SERVICE'] = ModelService.load(model_id, current_app.instance_path, current_app.logger)
+        current_app.config['MODEL_SERVICE'].loadResources()
+        return jsonify({"message": "Model selected successfully"}), 200
+    except Exception as e:
+        current_app.logger.error(f"Error loading model {model_id}: {e}", exc_info=True)
+        return jsonify({"error": "Failed to load model"}), 500
+
+@main.route('/models/<model_id>/identify', methods=['POST'])
+def identify(model_id):
     if 'audio_file' not in request.files:
         return jsonify({"error": "No audio file part"}), 400
     
@@ -88,12 +98,12 @@ def identify():
         file.save(temp_audio_path)
         current_app.logger.info(f"Temporary audio file saved to {temp_audio_path}")
         
-        interpreter = current_app.config.get('VOICEPRINT_INTERPRETER')
-        if not interpreter:
-            current_app.logger.error("Interpreter not found in app config.")
-            return jsonify({"error": "Interpreter not configured"}), 500
+        model_service = current_app.config.get('MODEL_SERVICE')
+        if not model_service:
+            current_app.logger.error("Model service not found in app config.")
+            return jsonify({"error": "Model service not configured"}), 500
 
-        response = interpreter.identify(temp_audio_path)
+        response = model_service.identify(temp_audio_path)
         
         if response.error:
             return jsonify({"error": response.error, "processing_time_ms": response.processing_time_ms}), 500
