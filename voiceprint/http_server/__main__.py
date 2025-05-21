@@ -1,6 +1,7 @@
 import os
 import logging
 from flask import Flask
+from flask_cors import CORS
 
 # Suppress TensorFlow logging early
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # FATAL
@@ -8,6 +9,7 @@ logging.getLogger('tensorflow').setLevel(logging.FATAL)
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
 
     # Configure logging
     app.logger.setLevel(logging.INFO)

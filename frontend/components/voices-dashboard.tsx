@@ -17,14 +17,25 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { addVoiceSample, deleteVoiceSample, getAudioUrl } from "@/lib/api";
+import { deleteVoiceSample, getAudioUrl } from "@/lib/api";
 
 type VoiceDashboardProps = {
   voices: Record<string, string[]>;
   addVoice: ({ name }: { name: string }) => Promise<void>;
+  addVoiceSample: ({
+    voiceName,
+    file,
+  }: {
+    voiceName: string;
+    file: File;
+  }) => Promise<void>;
 };
 
-export function VoicesDashboard({ voices, addVoice }: VoiceDashboardProps) {
+export function VoicesDashboard({
+  voices,
+  addVoice,
+  addVoiceSample,
+}: VoiceDashboardProps) {
   const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
   const [newVoiceName, setNewVoiceName] = useState("");
   const [isAddingVoice, setIsAddingVoice] = useState(false);
@@ -56,11 +67,7 @@ export function VoicesDashboard({ voices, addVoice }: VoiceDashboardProps) {
 
   async function handleAddVoiceSample(voiceName: string, file: File) {
     try {
-      await addVoiceSample(voiceName, file);
-      toast({
-        title: "Sample added",
-        description: `Sample has been added to "${voiceName}" successfully.`,
-      });
+      await addVoiceSample({ voiceName, file });
     } catch (error) {
       console.error("Error adding voice sample:", error);
       toast({
@@ -270,52 +277,75 @@ export function VoicesDashboard({ voices, addVoice }: VoiceDashboardProps) {
           </div>
           <div className="flex-1">
             {selectedVoice && (
-              <div className="space-y-2">
-                {!voices[selectedVoice]?.length ? (
-                  <p className="text-sm text-muted-foreground">
-                    No samples added yet.
-                  </p>
-                ) : (
-                  voices[selectedVoice].map((sample) => (
-                    <div
-                      key={sample}
-                      className="flex items-center justify-between rounded-md border p-2"
-                    >
-                      <span className="text-sm">{sample}</span>
-                      <div className="flex space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() =>
-                            handlePlaySample(selectedVoice, sample)
-                          }
-                          aria-label={
-                            currentlyPlaying === `${selectedVoice}/${sample}`
-                              ? "Stop"
-                              : "Play"
-                          }
-                        >
-                          {currentlyPlaying === `${selectedVoice}/${sample}` ? (
-                            <Pause className="h-4 w-4 text-primary" />
-                          ) : (
-                            <Play className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() =>
-                            handleDeleteVoiceSample(selectedVoice, sample)
-                          }
-                          aria-label="Delete sample"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+              <>
+                <Label
+                  htmlFor={`file-upload-${selectedVoice}`}
+                  className="w-full"
+                >
+                  <div className="flex items-center justify-center w-full">
+                    <Button variant="outline" className="w-full" asChild>
+                      <div>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Sample
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                    </Button>
+                  </div>
+                  <Input
+                    id={`file-upload-${selectedVoice}`}
+                    type="file"
+                    accept="audio/*"
+                    className="hidden"
+                    onChange={(e) => handleFileUpload(selectedVoice, e)}
+                  />
+                </Label>
+                <div className="space-y-2">
+                  {!voices[selectedVoice]?.length ? (
+                    <p className="text-sm text-muted-foreground">
+                      No samples added yet.
+                    </p>
+                  ) : (
+                    voices[selectedVoice].map((sample) => (
+                      <div
+                        key={sample}
+                        className="flex items-center justify-between rounded-md border p-2"
+                      >
+                        <span className="text-sm">{sample}</span>
+                        <div className="flex space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              handlePlaySample(selectedVoice, sample)
+                            }
+                            aria-label={
+                              currentlyPlaying === `${selectedVoice}/${sample}`
+                                ? "Stop"
+                                : "Play"
+                            }
+                          >
+                            {currentlyPlaying ===
+                            `${selectedVoice}/${sample}` ? (
+                              <Pause className="h-4 w-4 text-primary" />
+                            ) : (
+                              <Play className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              handleDeleteVoiceSample(selectedVoice, sample)
+                            }
+                            aria-label="Delete sample"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
             )}
           </div>
         </div>

@@ -15,12 +15,32 @@ export default async function VoicesPage() {
 
   async function addVoice({ name }: { name: string }) {
     "use server";
-    const response = await ky
-      .post(`${API_BASE_URL}/voices`, { json: { name } })
-      .json();
+    await ky.post(`${API_BASE_URL}/voices`, { json: { name } }).json();
 
-    console.debug(">>> response", response);
     revalidatePath("/voices");
   }
-  return <VoicesDashboard voices={voices} addVoice={addVoice} />;
+
+  async function addVoiceSample({
+    voiceName,
+    file,
+  }: {
+    voiceName: string;
+    file: File;
+  }) {
+    "use server";
+    const formData = new FormData();
+    formData.append("file", file);
+    await ky
+      .post(`${API_BASE_URL}/voices/${voiceName}/samples`, { body: formData })
+      .json();
+
+    revalidatePath("/voices");
+  }
+  return (
+    <VoicesDashboard
+      voices={voices}
+      addVoice={addVoice}
+      addVoiceSample={addVoiceSample}
+    />
+  );
 }

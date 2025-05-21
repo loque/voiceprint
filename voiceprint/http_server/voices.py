@@ -1,6 +1,6 @@
 import os
 from typing import Dict, List
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request
 
 voices = Blueprint('voices', __name__)
 
@@ -36,7 +36,7 @@ def add_voice():
 
     return jsonify({"message": "Voice added successfully"}), 201
 
-@voices.route('/<voice_name>', methods=['POST'])
+@voices.route('/<voice_name>/samples', methods=['POST'])
 def add_voice_sample(voice_name):
     if not request.files or 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
@@ -53,7 +53,7 @@ def add_voice_sample(voice_name):
 
     return jsonify({"message": "Voice file added successfully"}), 201
 
-@voices.route('/<voice_name>/<sample_name>', methods=['DELETE'])
+@voices.route('/<voice_name>/samples/<sample_name>', methods=['DELETE'])
 def delete_voice_sample(voice_name, sample_name):
     voice_dir = os.path.join(VOICES_PATH, voice_name)
     file_path = os.path.join(voice_dir, sample_name)
