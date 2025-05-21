@@ -39,13 +39,12 @@ type IdentificationResult = {
   processing_time_ms: number;
 };
 
-export function ModelsDashboard({
-  models,
-  voices,
-}: {
+type ModelsDashboardProps = {
   models: Model[];
   voices: VoiceData;
-}) {
+};
+
+export function ModelsDashboard({ models, voices }: ModelsDashboardProps) {
   const [newModelName, setNewModelName] = useState("");
   const [selectedVoices, setSelectedVoices] = useState<
     Record<string, Set<string>>

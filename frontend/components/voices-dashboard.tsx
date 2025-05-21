@@ -9,35 +9,22 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  addVoice,
-  addVoiceSample,
-  deleteVoiceSample,
-  getAudioUrl,
-} from "@/lib/api";
+import { addVoiceSample, deleteVoiceSample, getAudioUrl } from "@/lib/api";
 
-export function VoicesDashboard({
-  voices,
-}: {
+type VoiceDashboardProps = {
   voices: Record<string, string[]>;
-}) {
+  addVoice: ({ name }: { name: string }) => Promise<void>;
+};
+
+export function VoicesDashboard({ voices, addVoice }: VoiceDashboardProps) {
   const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
   const [newVoiceName, setNewVoiceName] = useState("");
   const [isAddingVoice, setIsAddingVoice] = useState(false);
@@ -52,13 +39,9 @@ export function VoicesDashboard({
 
     try {
       setIsAddingVoice(true);
-      await addVoice(newVoiceName);
+      await addVoice({ name: newVoiceName });
       setNewVoiceName("");
       setIsAddingVoiceOpen(false);
-      toast({
-        title: "Voice added",
-        description: `Voice "${newVoiceName}" has been added successfully.`,
-      });
     } catch (error) {
       console.error("Error adding voice:", error);
       toast({
