@@ -3,7 +3,8 @@
 import ky from "ky";
 import { API_BASE_URL } from "./constants";
 import { revalidatePath } from "next/cache";
-import { VoiceData } from "./dto";
+
+export type VoiceData = Record<string, string[]>;
 
 export async function getVoices() {
   const res = await ky.get<VoiceData>(`${API_BASE_URL}/voices`);
