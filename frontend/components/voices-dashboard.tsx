@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { deleteVoiceSample, getAudioUrl } from "@/lib/api";
+import { getAudioUrl } from "@/lib/api";
 
 type VoiceDashboardProps = {
   voices: Record<string, string[]>;
@@ -29,12 +29,20 @@ type VoiceDashboardProps = {
     voiceName: string;
     file: File;
   }) => Promise<void>;
+  deleteVoiceSample: ({
+    voiceName,
+    sampleName,
+  }: {
+    voiceName: string;
+    sampleName: string;
+  }) => Promise<void>;
 };
 
 export function VoicesDashboard({
   voices,
   addVoice,
   addVoiceSample,
+  deleteVoiceSample,
 }: VoiceDashboardProps) {
   const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
   const [newVoiceName, setNewVoiceName] = useState("");
@@ -83,11 +91,7 @@ export function VoicesDashboard({
     sampleName: string
   ) {
     try {
-      await deleteVoiceSample(voiceName, sampleName);
-      toast({
-        title: "Sample deleted",
-        description: `Sample has been removed from "${voiceName}" successfully.`,
-      });
+      await deleteVoiceSample({ voiceName, sampleName });
     } catch (error) {
       console.error("Error deleting voice sample:", error);
       toast({

@@ -36,11 +36,27 @@ export default async function VoicesPage() {
 
     revalidatePath("/voices");
   }
+
+  async function deleteVoiceSample({
+    voiceName,
+    sampleName,
+  }: {
+    voiceName: string;
+    sampleName: string;
+  }) {
+    "use server";
+    await ky.delete(
+      `${API_BASE_URL}/voices/${voiceName}/samples/${sampleName}`
+    );
+    revalidatePath("/voices");
+  }
+
   return (
     <VoicesDashboard
       voices={voices}
       addVoice={addVoice}
       addVoiceSample={addVoiceSample}
+      deleteVoiceSample={deleteVoiceSample}
     />
   );
 }
