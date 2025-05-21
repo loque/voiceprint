@@ -16,8 +16,11 @@ def create_app():
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
     app.logger.addHandler(stream_handler)
 
-    from .server import main as main_blueprint
-    app.register_blueprint(main_blueprint)
+    from .voices import voices
+    app.register_blueprint(voices, url_prefix='/voices')
+    
+    from .models import models
+    app.register_blueprint(models, url_prefix='/models')
 
     return app
 

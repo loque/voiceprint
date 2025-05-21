@@ -4,13 +4,13 @@ import json
 from voiceprint.model_service import ModelService
 from typing import List, Dict
 
-main = Blueprint('main', __name__)
+models = Blueprint('models', __name__)
 
 # TODO: share with ModelService
 class Voices(Dict[str, List[str]]):
     pass
 
-@main.route('/models', methods=['GET'])
+@models.route('', methods=['GET'])
 def get_models():
     models_dir = os.path.join(current_app.instance_path, 'models')
     models: List[Dict[str, object]] = []
@@ -34,7 +34,7 @@ def get_models():
                     current_app.logger.error(f"Error reading {model_json_path}: {e}")
     return jsonify(models), 200
 
-@main.route('/models', methods=['POST'])
+@models.route('', methods=['POST'])
 def create_model():
     data = request.get_json()
     if not data or 'voices' not in data or 'name' not in data:
@@ -59,21 +59,7 @@ def create_model():
         logger.error(f"Error during model creation: {e}", exc_info=True)
         return jsonify({'error': 'Failed to create model'}), 500
 
-@main.route('/voices', methods=['GET'])
-def get_voices():
-    voices_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../voices'))
-    voices: Voices = {}
-    if not os.path.exists(voices_dir):
-        return jsonify(voices), 200
-    for entry in os.listdir(voices_dir):
-        entry_path = os.path.join(voices_dir, entry)
-        if os.path.isdir(entry_path):
-            wav_files = sorted([f for f in os.listdir(entry_path)
-                                if os.path.isfile(os.path.join(entry_path, f)) and f.lower().endswith('.wav')])
-            voices[entry] = wav_files
-    return jsonify(voices), 200
-
-@main.route('/models/<model_id>', methods=['post'])
+@models.route('/<model_id>', methods=['post'])
 def select_model(model_id):
     try:
         current_app.config['MODEL_SERVICE'] = ModelService.load(model_id, current_app.instance_path, current_app.logger)
@@ -83,7 +69,7 @@ def select_model(model_id):
         current_app.logger.error(f"Error loading model {model_id}: {e}", exc_info=True)
         return jsonify({"error": "Failed to load model"}), 500
 
-@main.route('/models/<model_id>/identify', methods=['POST'])
+@models.route('/models/<model_id>/identify', methods=['POST'])
 def identify(model_id):
     if 'audio_file' not in request.files:
         return jsonify({"error": "No audio file part"}), 400
