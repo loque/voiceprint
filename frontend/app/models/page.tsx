@@ -3,6 +3,8 @@ import { ModelsDashboard } from "@/components/models-dashboard";
 import { getModels, createModel, loadModel, identifyVoice } from "@/api/models";
 import { getVoices } from "@/api/voices";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Models Dashboard | VoicePrint",
   description: "Manage speaker identification models",

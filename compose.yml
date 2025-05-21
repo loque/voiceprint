@@ -9,3 +9,14 @@ services:
       - ./voiceprint/voices:/app/voices
       - ./voiceprint/models:/app/models
     user: "1000:1000"
+
+  frontend:
+    container_name: voiceprint_frontend
+    image: voiceprint_frontend
+    build: ./frontend
+    environment:
+      - API_BASE_URL=http://http_server:5000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - http_server

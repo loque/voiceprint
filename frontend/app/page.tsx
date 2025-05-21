@@ -7,6 +7,8 @@ import {
   getVoices,
 } from "@/api/voices";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Voices Dashboard | VoicePrint",
   description: "Manage voice samples for speaker identification",
