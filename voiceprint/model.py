@@ -11,6 +11,15 @@ import tensorflow as tf
 from tensorflow.keras import layers, models, regularizers, callbacks, optimizers  # type: ignore
 import matplotlib.pyplot as plt
 
+MODEL_FILENAME = "voiceprint_model.h5"
+TRAINING_HISTORY_FILENAME = "training_history.npy"
+TRAINING_HISTORY_PLOT_FILENAME = "training_history_plot.png"
+MFCCS_FILENAME = "mfccs.npy"
+LABELS_FILENAME = "labels.npy"
+LABEL_MAPPING_FILENAME = "label_mapping.npy"
+SCALER_MEAN_FILENAME = "scaler_mean.npy"
+SCALER_SCALE_FILENAME = "scaler_scale.npy"
+
 Voices = Dict[str, List[str]]
 
 class Model:
@@ -33,7 +42,37 @@ class Model:
         model.scaler_scale = None
 
         return model
-  
+    
+    @staticmethod
+    def load(model_id: str, cwd: str, logger: logging.Logger):
+        """
+        Load a model using its model_id, fetch metadata.json, and instantiate a Model object.
+        """
+        model_dir = os.path.join(cwd, 'models', model_id)
+        metadata_path = os.path.join(model_dir, 'metadata.json')
+
+        if not os.path.exists(metadata_path):
+            logger.error(f"Metadata file not found at '{metadata_path}'")
+            raise FileNotFoundError(f"Metadata file not found at '{metadata_path}'")
+
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+
+        model = Model.__new__(Model)
+        model.id = metadata['id']
+        model.name = metadata['name']
+        model.voices = metadata['voices']
+        model.mfccs = metadata['mfccs']
+        model.labels = metadata['labels']
+        model.label_mapping = metadata['label_mapping']
+        model.scaler_mean = metadata['scaler_mean']
+        model.scaler_scale = metadata['scaler_scale']
+        model.dir = model_dir
+        model.logger = logger
+
+        logger.info(f"Model '{model_id}' loaded successfully from '{metadata_path}'")
+        return model
+
     def saveMetadata(self):
         """
         Save model metadata (excluding logger and dir) to metadata.json in self.dir.
@@ -89,10 +128,10 @@ class Model:
         
         label_mapping = dict(zip(encoder.classes_, range(len(encoder.classes_))))
         
-        self.mfccs = os.path.join(self.dir, "mfccs.npy")
-        self.labels = os.path.join(self.dir, "labels.npy")
-        self.label_mapping = os.path.join(self.dir, "label_mapping.npy")
-        
+        self.mfccs = os.path.join(self.dir, MFCCS_FILENAME)
+        self.labels = os.path.join(self.dir, LABELS_FILENAME)
+        self.label_mapping = os.path.join(self.dir, LABEL_MAPPING_FILENAME)
+
         # Save files
         np.save(self.mfccs, processed_mfccs)
         np.save(self.labels, encoded_labels)
@@ -128,9 +167,9 @@ class Model:
           X_test_flat = scaler.transform(X_test_flat)
           
           # Save scaler parameters for later use in prediction
-          np.save(os.path.join(self.dir, 'scaler_mean.npy'), scaler.mean_)
-          np.save(os.path.join(self.dir, 'scaler_scale.npy'), scaler.scale_)
-      
+          np.save(os.path.join(self.dir, SCALER_MEAN_FILENAME), scaler.mean_)
+          np.save(os.path.join(self.dir, SCALER_SCALE_FILENAME), scaler.scale_)
+
           # Reshape back to original shape
           X_train = X_train_flat.reshape(X_train.shape)
           X_test = X_test_flat.reshape(X_test.shape)
@@ -200,12 +239,12 @@ class Model:
           )
 
           # Save the model
-          model_path = os.path.join(self.dir, 'voiceprint_model.h5')
+          model_path = os.path.join(self.dir, MODEL_FILENAME)
           model.save(model_path)
           self.logger.info(f"Model saved to '{model_path}'")
           
           # Save training history
-          history_path = os.path.join(self.dir, 'training_history.npy')
+          history_path = os.path.join(self.dir, TRAINING_HISTORY_FILENAME)
           np.save(history_path, history.history)
           self.logger.info(f"Training history saved to '{history_path}'")
 
@@ -213,7 +252,7 @@ class Model:
           """
           Plot and save training history from the training process.
           """
-          history_path = os.path.join(self.dir, 'training_history.npy')
+          history_path = os.path.join(self.dir, TRAINING_HISTORY_FILENAME)
           if not os.path.exists(history_path):
               self.logger.error(f"Training history not found at '{history_path}'")
               return
@@ -238,7 +277,7 @@ class Model:
           plt.legend()
 
           plt.tight_layout()
-          plot_path = os.path.join(self.dir, 'training_history.png')
+          plot_path = os.path.join(self.dir, TRAINING_HISTORY_PLOT_FILENAME)
           plt.savefig(plot_path)
           self.logger.info(f"Training history plot saved to '{plot_path}'")
 
