@@ -14,7 +14,6 @@ MODELS_PATH = os.getenv('MODELS_PATH')
 
 @models.route('', methods=['GET'])
 def get_models():
-    # TODO: add property `isLoaded` to model
     models: List[Dict[str, object]] = []
     if not os.path.exists(MODELS_PATH):
         return jsonify(models), 200
