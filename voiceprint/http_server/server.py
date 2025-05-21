@@ -2,13 +2,18 @@ import os
 from flask import Blueprint, request, jsonify, current_app
 import json
 from voiceprint.model_service import ModelService
+from typing import List, Dict
 
 main = Blueprint('main', __name__)
+
+# TODO: share with ModelService
+class Voices(Dict[str, List[str]]):
+    pass
 
 @main.route('/models', methods=['GET'])
 def get_models():
     models_dir = os.path.join(current_app.instance_path, 'models')
-    models = []
+    models: List[Dict[str, object]] = []
     if not os.path.exists(models_dir):
         return jsonify(models), 200
     for entry in os.listdir(models_dir):
@@ -19,7 +24,12 @@ def get_models():
                 try:
                     with open(model_json_path, 'r') as f:
                         model_data = json.load(f)
-                        models.append(model_data)
+                        filtered_data = {
+                            "id": model_data.get("id"),
+                            "name": model_data.get("name"),
+                            "voices": Voices(model_data.get("voices", {}))
+                        }
+                        models.append(filtered_data)
                 except Exception as e:
                     current_app.logger.error(f"Error reading {model_json_path}: {e}")
     return jsonify(models), 200
@@ -52,9 +62,9 @@ def create_model():
 @main.route('/voices', methods=['GET'])
 def get_voices():
     voices_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../voices'))
-    voices = {}
+    voices: Voices = {}
     if not os.path.exists(voices_dir):
-        return jsonify({}), 200
+        return jsonify(voices), 200
     for entry in os.listdir(voices_dir):
         entry_path = os.path.join(voices_dir, entry)
         if os.path.isdir(entry_path):
