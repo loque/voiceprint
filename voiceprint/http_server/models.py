@@ -60,7 +60,7 @@ def create_model():
         return jsonify({'error': 'Failed to create model'}), 500
 
 @models.route('/<model_id>', methods=['post'])
-def select_model(model_id):
+def load_model(model_id):
     try:
         current_app.config['MODEL_SERVICE'] = ModelService.load(model_id, current_app.instance_path, current_app.logger)
         current_app.config['MODEL_SERVICE'].loadResources()
@@ -70,7 +70,7 @@ def select_model(model_id):
         return jsonify({"error": "Failed to load model"}), 500
 
 @models.route('/models/<model_id>/identify', methods=['POST'])
-def identify(model_id):
+def identify_with_model(model_id):
     if 'audio_file' not in request.files:
         return jsonify({"error": "No audio file part"}), 400
     
