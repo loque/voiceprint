@@ -81,6 +81,7 @@ class ModelService:
         model.scaler_scale = metadata['scaler_scale']
         model.path = model_path
         model.logger = logger
+        model.isLoaded = True
 
         logger.info(f"Model '{model_id}' loaded successfully from '{metadata_path}'")
         return model

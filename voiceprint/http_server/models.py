@@ -18,6 +18,12 @@ def get_models():
     models: List[Dict[str, object]] = []
     if not os.path.exists(MODELS_PATH):
         return jsonify(models), 200
+    
+    model_service = current_app.config.get('MODEL_SERVICE')
+    model_loaded_id = None
+    if model_service and getattr(model_service, 'isLoaded', False):
+        model_loaded_id = getattr(model_service, 'id', None)
+    
     for entry in os.listdir(MODELS_PATH):
         entry_path = os.path.join(MODELS_PATH, entry)
         if os.path.isdir(entry_path):
@@ -29,7 +35,8 @@ def get_models():
                         filtered_data = {
                             "id": model_data.get("id"),
                             "name": model_data.get("name"),
-                            "voices": Voices(model_data.get("voices", {}))
+                            "voices": Voices(model_data.get("voices", {})),
+                            "isLoaded": model_loaded_id == model_data.get("id"),
                         }
                         models.append(filtered_data)
                 except Exception as e:

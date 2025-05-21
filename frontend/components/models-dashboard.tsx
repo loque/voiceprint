@@ -65,13 +65,14 @@ export function ModelsDashboard({
   >({});
   const [isCreatingModel, setIsCreatingModel] = useState(false);
   const [isCreatingModelOpen, setIsCreatingModelOpen] = useState(false);
-  const [loadedModelId, setLoadedModelId] = useState<string | null>(null);
   const [isLoadingModel, setIsLoadingModel] = useState(false);
   const [identifyFile, setIdentifyFile] = useState<File | null>(null);
   const [isIdentifying, setIsIdentifying] = useState(false);
   const [identificationResult, setIdentificationResult] =
     useState<IdentificationResult | null>(null);
   const { toast } = useToast();
+
+  const loadedModelId = models.find((model) => model.isLoaded)?.id;
 
   useEffect(() => {
     // Initialize selected voices
@@ -81,14 +82,6 @@ export function ModelsDashboard({
     });
     setSelectedVoices(initialSelectedVoices);
   }, [voices]);
-
-  useEffect(() => {
-    // Find loaded model
-    const loadedModel = models.find((model) => model.isLoaded);
-    if (loadedModel) {
-      setLoadedModelId(loadedModel.id);
-    }
-  }, [models]);
 
   function toggleVoiceSample(voiceName: string, sampleName: string) {
     setSelectedVoices((prev) => {
@@ -182,7 +175,6 @@ export function ModelsDashboard({
     try {
       setIsLoadingModel(true);
       await loadModel({ modelId });
-      setLoadedModelId(modelId);
 
       // TODO: Update models to reflect the active state
     } catch (error) {
