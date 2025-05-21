@@ -1,5 +1,4 @@
 .idea/*
-vp_env
 
 voiceprint/models/*
 voiceprint/voices/*
