@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, request, jsonify, current_app
 import json
-from voiceprint.model_service import ModelService
+from model_service import ModelService
 from typing import List, Dict
 
 models = Blueprint('models', __name__)
@@ -10,14 +10,15 @@ models = Blueprint('models', __name__)
 class Voices(Dict[str, List[str]]):
     pass
 
+MODELS_PATH = os.getenv('MODELS_PATH')
+
 @models.route('', methods=['GET'])
 def get_models():
-    models_dir = os.path.join(current_app.instance_path, 'models')
     models: List[Dict[str, object]] = []
-    if not os.path.exists(models_dir):
+    if not os.path.exists(MODELS_PATH):
         return jsonify(models), 200
-    for entry in os.listdir(models_dir):
-        entry_path = os.path.join(models_dir, entry)
+    for entry in os.listdir(MODELS_PATH):
+        entry_path = os.path.join(MODELS_PATH, entry)
         if os.path.isdir(entry_path):
             model_json_path = os.path.join(entry_path, 'metadata.json')
             if os.path.isfile(model_json_path):
@@ -45,8 +46,7 @@ def create_model():
     
     # Instantiate the Model class
     logger = current_app.logger
-    cwd = current_app.instance_path
-    model = ModelService.create(name=model_name, voices=model_voices, logger=logger, cwd=cwd)
+    model = ModelService.create(name=model_name, voices=model_voices, logger=logger, cwd=MODELS_PATH)
     
     try:
         # Extract MFCCs, train the model, and save metadata
@@ -62,7 +62,7 @@ def create_model():
 @models.route('/<model_id>', methods=['post'])
 def load_model(model_id):
     try:
-        current_app.config['MODEL_SERVICE'] = ModelService.load(model_id, current_app.instance_path, current_app.logger)
+        current_app.config['MODEL_SERVICE'] = ModelService.load(model_id=model_id, models_path=MODELS_PATH, logger=current_app.logger)
         current_app.config['MODEL_SERVICE'].loadResources()
         return jsonify({"message": "Model loaded successfully"}), 200
     except Exception as e:

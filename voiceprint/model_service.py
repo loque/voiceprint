@@ -32,16 +32,18 @@ class IdentifyResponse:
     
 Voices = Dict[str, List[str]]
 
+VOICES_PATH = os.getenv('VOICES_PATH')
+
 class ModelService:
     @staticmethod
-    def create(name: str, voices: Voices, logger: logging.Logger, cwd: str):
+    def create(name: str, voices: Voices, logger: logging.Logger, models_path: str):
         model_id = uuid.uuid4().hex[:8]
-        model_dir = os.path.join(cwd, 'models', model_id)
-        os.makedirs(model_dir, exist_ok=True)
+        model_path = os.path.join(models_path, model_id)
+        os.makedirs(model_path, exist_ok=True)
 
         model_service = ModelService.__new__(ModelService)
         model_service.id = model_id
-        model_service.dir = model_dir
+        model_service.path = model_path
         model_service.name = name
         model_service.voices = voices
         model_service.logger = logger
@@ -54,12 +56,12 @@ class ModelService:
         return model_service
     
     @staticmethod
-    def load(model_id: str, cwd: str, logger: logging.Logger):
+    def load(model_id: str, models_path: str, logger: logging.Logger):
         """
         Load a model using its model_id, fetch metadata.json, and instantiate a Model object.
         """
-        model_dir = os.path.join(cwd, 'models', model_id)
-        metadata_path = os.path.join(model_dir, 'metadata.json')
+        model_path = os.path.join(models_path, 'models', model_id)
+        metadata_path = os.path.join(model_path, 'metadata.json')
 
         if not os.path.exists(metadata_path):
             logger.error(f"Metadata file not found at '{metadata_path}'")
@@ -77,7 +79,7 @@ class ModelService:
         model.label_mapping = metadata['label_mapping']
         model.scaler_mean = metadata['scaler_mean']
         model.scaler_scale = metadata['scaler_scale']
-        model.dir = model_dir
+        model.path = model_path
         model.logger = logger
 
         logger.info(f"Model '{model_id}' loaded successfully from '{metadata_path}'")
@@ -85,7 +87,7 @@ class ModelService:
         
     def saveMetadata(self):
         """
-        Save model metadata (excluding logger and dir) to metadata.json in self.dir.
+        Save model metadata (excluding logger and path) to metadata.json in self.path.
         """
         metadata = {
             "id": self.id,
@@ -97,23 +99,22 @@ class ModelService:
             "scaler_mean": self.scaler_mean if self.scaler_mean is not None else None,
             "scaler_scale": self.scaler_scale if self.scaler_scale is not None else None,
         }
-        with open(os.path.join(self.dir, "metadata.json"), "w") as f:
+        with open(os.path.join(self.path, "metadata.json"), "w") as f:
             json.dump(metadata, f, indent=2)
-        self.logger.info(f"Saved metadata to {os.path.join(self.dir, 'metadata.json')}")
+        self.logger.info(f"Saved metadata to {os.path.join(self.path, 'metadata.json')}")
     
     def extract_mfccs(self, fixed_length: int = 100, n_mfcc: int = 13):
         """
-        Extract MFCCs from the audio files in self.voices, save to self.dir, and populate self fields.
+        Extract MFCCs from the audio files in self.voices, save to self.path, and populate self fields.
         """
-        voices_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../voices'))
-        os.makedirs(self.dir, exist_ok=True)
+        os.makedirs(self.path, exist_ok=True)
         mfcc_data = []
         labels = []
         for speaker, files in self.voices.items():
             for audio_file in files:
                 if not audio_file.endswith(".wav"):
                     continue
-                audio_path = os.path.join(voices_dir, speaker, audio_file)
+                audio_path = os.path.join(VOICES_PATH, speaker, audio_file)
                 audio, sr = librosa.load(audio_path, sr=16000)
                 mfccs = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=n_mfcc)
                 mfcc_data.append(mfccs.T)  # (n_frames, n_mfcc)
@@ -138,20 +139,20 @@ class ModelService:
         
         label_mapping = dict(zip(encoder.classes_, range(len(encoder.classes_))))
         
-        self.mfccs = os.path.join(self.dir, MFCCS_FILENAME)
-        self.labels = os.path.join(self.dir, LABELS_FILENAME)
-        self.label_mapping = os.path.join(self.dir, LABEL_MAPPING_FILENAME)
+        self.mfccs = os.path.join(self.path, MFCCS_FILENAME)
+        self.labels = os.path.join(self.path, LABELS_FILENAME)
+        self.label_mapping = os.path.join(self.path, LABEL_MAPPING_FILENAME)
 
         # Save files
         np.save(self.mfccs, processed_mfccs)
         np.save(self.labels, encoded_labels)
         np.save(self.label_mapping, label_mapping)
 
-        self.logger.info(f"Extracted MFCCs for {len(processed_mfccs)} files to {self.dir}")
+        self.logger.info(f"Extracted MFCCs for {len(processed_mfccs)} files to {self.path}")
     
     def train(self, batch_size: int = 32, epochs: int = 50):
           """
-          Train a voiceprint model using the MFCCs and labels stored in self.dir.
+          Train a voiceprint model using the MFCCs and labels stored in self.path.
           """
           # Load data
           mfccs = np.load(self.mfccs)
@@ -177,8 +178,8 @@ class ModelService:
           X_test_flat = scaler.transform(X_test_flat)
           
           # Save scaler parameters for later use in prediction
-          np.save(os.path.join(self.dir, SCALER_MEAN_FILENAME), scaler.mean_)
-          np.save(os.path.join(self.dir, SCALER_SCALE_FILENAME), scaler.scale_)
+          np.save(os.path.join(self.path, SCALER_MEAN_FILENAME), scaler.mean_)
+          np.save(os.path.join(self.path, SCALER_SCALE_FILENAME), scaler.scale_)
 
           # Reshape back to original shape
           X_train = X_train_flat.reshape(X_train.shape)
@@ -249,12 +250,12 @@ class ModelService:
           )
 
           # Save the model
-          model_path = os.path.join(self.dir, MODEL_FILENAME)
+          model_path = os.path.join(self.path, MODEL_FILENAME)
           model.save(model_path)
           self.logger.info(f"Model saved to '{model_path}'")
           
           # Save training history
-          history_path = os.path.join(self.dir, TRAINING_HISTORY_FILENAME)
+          history_path = os.path.join(self.path, TRAINING_HISTORY_FILENAME)
           np.save(history_path, history.history)
           self.logger.info(f"Training history saved to '{history_path}'")
 
@@ -262,7 +263,7 @@ class ModelService:
           """
           Plot and save training history from the training process.
           """
-          history_path = os.path.join(self.dir, TRAINING_HISTORY_FILENAME)
+          history_path = os.path.join(self.path, TRAINING_HISTORY_FILENAME)
           if not os.path.exists(history_path):
               self.logger.error(f"Training history not found at '{history_path}'")
               return
@@ -287,7 +288,7 @@ class ModelService:
           plt.legend()
 
           plt.tight_layout()
-          plot_path = os.path.join(self.dir, TRAINING_HISTORY_PLOT_FILENAME)
+          plot_path = os.path.join(self.path, TRAINING_HISTORY_PLOT_FILENAME)
           plt.savefig(plot_path)
           self.logger.info(f"Training history plot saved to '{plot_path}'")
 
@@ -296,26 +297,26 @@ class ModelService:
         
 
         # Load the model
-        model_path = os.path.join(self.dir, MODEL_FILENAME)
+        model_path = os.path.join(self.path, MODEL_FILENAME)
         self.model: tf.keras.Model = tf.keras.models.load_model(model_path)
         self.logger.info(f"Model loaded from {model_path}.")
 
         # Load the labels
-        labels_path = os.path.join(self.dir, LABELS_FILENAME)
+        labels_path = os.path.join(self.path, LABELS_FILENAME)
         labels_data = np.load(labels_path)
         self.encoder: LabelEncoder = LabelEncoder()
         self.encoder.fit(labels_data)
         self.logger.info(f"Labels loaded from {labels_path}.")
 
         # Load label mapping
-        label_mapping_path = os.path.join(self.dir, LABEL_MAPPING_FILENAME)
+        label_mapping_path = os.path.join(self.path, LABEL_MAPPING_FILENAME)
         label_mapping = np.load(label_mapping_path, allow_pickle=True).item()
         self.reverse_label_mapping: dict[Any, Any] = {v: k for k, v in label_mapping.items()}
         self.logger.info(f"Label mapping loaded from {label_mapping_path}.")
 
         # Load scaler parameters
-        scaler_mean_path = os.path.join(self.dir, SCALER_MEAN_FILENAME)
-        scaler_scale_path = os.path.join(self.dir, SCALER_SCALE_FILENAME)
+        scaler_mean_path = os.path.join(self.path, SCALER_MEAN_FILENAME)
+        scaler_scale_path = os.path.join(self.path, SCALER_SCALE_FILENAME)
         self.scaler_mean: np.ndarray = np.load(scaler_mean_path)
         self.scaler_scale: np.ndarray = np.load(scaler_scale_path)
         self.logger.info(f"Scaler parameters loaded from {scaler_mean_path} and {scaler_scale_path}.")
