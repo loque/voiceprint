@@ -37,7 +37,7 @@ def create_model():
     # Instantiate the Model class
     logger = current_app.logger
     cwd = current_app.instance_path
-    model = Model(name=model_name, voices=model_voices, logger=logger, cwd=cwd)
+    model = Model.create(name=model_name, voices=model_voices, logger=logger, cwd=cwd)
     
     try:
         # Extract MFCCs, train the model, and save metadata
