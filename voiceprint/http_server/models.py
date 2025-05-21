@@ -64,7 +64,7 @@ def load_model(model_id):
     try:
         current_app.config['MODEL_SERVICE'] = ModelService.load(model_id, current_app.instance_path, current_app.logger)
         current_app.config['MODEL_SERVICE'].loadResources()
-        return jsonify({"message": "Model selected successfully"}), 200
+        return jsonify({"message": "Model loaded successfully"}), 200
     except Exception as e:
         current_app.logger.error(f"Error loading model {model_id}: {e}", exc_info=True)
         return jsonify({"error": "Failed to load model"}), 500
