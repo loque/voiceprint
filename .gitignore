@@ -1,11 +1,8 @@
 .idea/*
 vp_env
-dataset/*
 
-voiceprint/model/*
 voiceprint/http_server/__pycache__
 voiceprint/http_server/instance
-
-voices/*
+voiceprint/voices/*
 
 !.gitkeep
