@@ -1,14 +1,21 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { Brain, Plus, Upload, Loader2, Check } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
+import { useState, useEffect } from "react";
+import { Brain, Plus, Upload, Loader2, Check } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -17,106 +24,102 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
-import { getVoices, getModels, createModel, loadModel, identifyVoice } from "@/lib/api"
-import type { Model, VoiceData } from "@/lib/store"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { createModel, loadModel, identifyVoice } from "@/lib/api";
+import type { Model, VoiceData } from "@/lib/store";
 
-export function ModelsDashboard() {
-  const [voices, setVoices] = useState<VoiceData>({})
-  const [models, setModels] = useState<Model[]>([])
-  const [newModelName, setNewModelName] = useState("")
-  const [selectedVoices, setSelectedVoices] = useState<Record<string, Set<string>>>({})
-  const [isCreatingModel, setIsCreatingModel] = useState(false)
-  const [isCreatingModelOpen, setIsCreatingModelOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [activeModelId, setActiveModelId] = useState<string | null>(null)
-  const [isLoadingModel, setIsLoadingModel] = useState(false)
-  const [identifyFile, setIdentifyFile] = useState<File | null>(null)
-  const [isIdentifying, setIsIdentifying] = useState(false)
-  const [identificationResult, setIdentificationResult] = useState<any>(null)
-  const { toast } = useToast()
+type IdentificationResult = {
+  predicted_speaker: string;
+  confidence: number;
+  all_predictions: Record<string, number>;
+  processing_time_ms: number;
+};
+
+export function ModelsDashboard({
+  models,
+  voices,
+}: {
+  models: Model[];
+  voices: VoiceData;
+}) {
+  const [newModelName, setNewModelName] = useState("");
+  const [selectedVoices, setSelectedVoices] = useState<
+    Record<string, Set<string>>
+  >({});
+  const [isCreatingModel, setIsCreatingModel] = useState(false);
+  const [isCreatingModelOpen, setIsCreatingModelOpen] = useState(false);
+  const [activeModelId, setActiveModelId] = useState<string | null>(null);
+  const [isLoadingModel, setIsLoadingModel] = useState(false);
+  const [identifyFile, setIdentifyFile] = useState<File | null>(null);
+  const [isIdentifying, setIsIdentifying] = useState(false);
+  const [identificationResult, setIdentificationResult] =
+    useState<IdentificationResult | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    // Initialize selected voices
+    const initialSelectedVoices: Record<string, Set<string>> = {};
+    Object.keys(voices).forEach((voice) => {
+      initialSelectedVoices[voice] = new Set();
+    });
+    setSelectedVoices(initialSelectedVoices);
+  }, [voices]);
 
-  async function fetchData() {
-    try {
-      setIsLoading(true)
-      const [voicesData, modelsData] = await Promise.all([getVoices(), getModels()])
-      setVoices(voicesData)
-      setModels(modelsData)
-
-      // Find active model
-      const activeModel = modelsData.find((model) => model.isActive)
-      if (activeModel) {
-        setActiveModelId(activeModel.id)
-      }
-
-      // Initialize selected voices
-      const initialSelectedVoices: Record<string, Set<string>> = {}
-      Object.keys(voicesData).forEach((voice) => {
-        initialSelectedVoices[voice] = new Set()
-      })
-      setSelectedVoices(initialSelectedVoices)
-    } catch (error) {
-      toast({
-        title: "Error fetching data",
-        description: "Could not load voices and models. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
+  useEffect(() => {
+    // Find active model
+    const activeModel = models.find((model) => model.isActive);
+    if (activeModel) {
+      setActiveModelId(activeModel.id);
     }
-  }
+  }, [models]);
 
   function toggleVoiceSample(voiceName: string, sampleName: string) {
     setSelectedVoices((prev) => {
-      const newSelectedVoices = { ...prev }
-      const voiceSamples = new Set(newSelectedVoices[voiceName])
+      const newSelectedVoices = { ...prev };
+      const voiceSamples = new Set(newSelectedVoices[voiceName]);
 
       if (voiceSamples.has(sampleName)) {
-        voiceSamples.delete(sampleName)
+        voiceSamples.delete(sampleName);
       } else {
-        voiceSamples.add(sampleName)
+        voiceSamples.add(sampleName);
       }
 
-      newSelectedVoices[voiceName] = voiceSamples
-      return newSelectedVoices
-    })
+      newSelectedVoices[voiceName] = voiceSamples;
+      return newSelectedVoices;
+    });
   }
 
   function toggleAllVoiceSamples(voiceName: string, checked: boolean) {
     setSelectedVoices((prev) => {
-      const newSelectedVoices = { ...prev }
+      const newSelectedVoices = { ...prev };
 
       if (checked) {
         // Select all samples for this voice
-        newSelectedVoices[voiceName] = new Set(voices[voiceName])
+        newSelectedVoices[voiceName] = new Set(voices[voiceName]);
       } else {
         // Deselect all samples for this voice
-        newSelectedVoices[voiceName] = new Set()
+        newSelectedVoices[voiceName] = new Set();
       }
 
-      return newSelectedVoices
-    })
+      return newSelectedVoices;
+    });
   }
 
   async function handleCreateModel(e: React.FormEvent) {
-    e.preventDefault()
-    if (!newModelName.trim()) return
+    e.preventDefault();
+    if (!newModelName.trim()) return;
 
     // Convert selectedVoices to the format expected by the API
-    const selectedVoicesFormatted: Record<string, string[]> = {}
+    const selectedVoicesFormatted: Record<string, string[]> = {};
     Object.entries(selectedVoices).forEach(([voiceName, samples]) => {
       if (samples.size > 0) {
-        selectedVoicesFormatted[voiceName] = Array.from(samples)
+        selectedVoicesFormatted[voiceName] = Array.from(samples);
       }
-    })
+    });
 
     // Check if at least one voice sample is selected
     if (Object.keys(selectedVoicesFormatted).length === 0) {
@@ -124,74 +127,68 @@ export function ModelsDashboard() {
         title: "No samples selected",
         description: "Please select at least one voice sample.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     try {
-      setIsCreatingModel(true)
-      await createModel(selectedVoicesFormatted, newModelName)
+      setIsCreatingModel(true);
+      await createModel(selectedVoicesFormatted, newModelName);
 
       // Reset form
-      setNewModelName("")
-      const resetSelectedVoices: Record<string, Set<string>> = {}
+      setNewModelName("");
+      const resetSelectedVoices: Record<string, Set<string>> = {};
       Object.keys(voices).forEach((voice) => {
-        resetSelectedVoices[voice] = new Set()
-      })
-      setSelectedVoices(resetSelectedVoices)
+        resetSelectedVoices[voice] = new Set();
+      });
+      setSelectedVoices(resetSelectedVoices);
 
-      setIsCreatingModelOpen(false)
+      setIsCreatingModelOpen(false);
       toast({
         title: "Model created",
         description: `Model "${newModelName}" has been created successfully.`,
-      })
+      });
 
-      // Refresh models list
-      const modelsData = await getModels()
-      setModels(modelsData)
+      // TODO: Refresh models list
     } catch (error) {
+      console.error("Error creating model:", error);
       toast({
         title: "Error creating model",
         description: "Could not create model. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsCreatingModel(false)
+      setIsCreatingModel(false);
     }
   }
 
   async function handleLoadModel(modelId: string) {
     try {
-      setIsLoadingModel(true)
-      await loadModel(modelId)
-      setActiveModelId(modelId)
+      setIsLoadingModel(true);
+      await loadModel(modelId);
+      setActiveModelId(modelId);
 
-      // Update models to reflect the active state
-      setModels((prevModels) =>
-        prevModels.map((model) => ({
-          ...model,
-          isActive: model.id === modelId,
-        })),
-      )
+      // TODO: Update models to reflect the active state
 
       toast({
         title: "Model loaded",
         description: "Model has been loaded successfully.",
-      })
+      });
     } catch (error) {
+      console.error("Error loading model:", error);
       toast({
         title: "Error loading model",
         description: "Could not load model. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoadingModel(false)
+      setIsLoadingModel(false);
     }
   }
 
   function handleIdentifyFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     // Check if file is audio
     if (!file.type.startsWith("audio/")) {
@@ -199,30 +196,31 @@ export function ModelsDashboard() {
         title: "Invalid file type",
         description: "Please upload an audio file.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIdentifyFile(file)
-    setIdentificationResult(null)
+    setIdentifyFile(file);
+    setIdentificationResult(null);
   }
 
   async function handleIdentifyVoice(e: React.FormEvent) {
-    e.preventDefault()
-    if (!activeModelId || !identifyFile) return
+    e.preventDefault();
+    if (!activeModelId || !identifyFile) return;
 
     try {
-      setIsIdentifying(true)
-      const result = await identifyVoice(activeModelId, identifyFile)
-      setIdentificationResult(result)
+      setIsIdentifying(true);
+      const result = await identifyVoice(activeModelId, identifyFile);
+      setIdentificationResult(result);
     } catch (error) {
+      console.error("Error identifying voice:", error);
       toast({
         title: "Error identifying voice",
         description: "Could not identify voice. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsIdentifying(false)
+      setIsIdentifying(false);
     }
   }
 
@@ -230,10 +228,17 @@ export function ModelsDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Models Dashboard</h1>
-          <p className="text-muted-foreground">Create and use speaker identification models</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Models Dashboard
+          </h1>
+          <p className="text-muted-foreground">
+            Create and use speaker identification models
+          </p>
         </div>
-        <Dialog open={isCreatingModelOpen} onOpenChange={setIsCreatingModelOpen}>
+        <Dialog
+          open={isCreatingModelOpen}
+          onOpenChange={setIsCreatingModelOpen}
+        >
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -244,7 +249,9 @@ export function ModelsDashboard() {
             <form onSubmit={handleCreateModel}>
               <DialogHeader>
                 <DialogTitle>Create New Model</DialogTitle>
-                <DialogDescription>Select voice samples and provide a name for the new model.</DialogDescription>
+                <DialogDescription>
+                  Select voice samples and provide a name for the new model.
+                </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
@@ -265,22 +272,39 @@ export function ModelsDashboard() {
                         <div className="flex items-center space-x-2 mb-2">
                           <Checkbox
                             id={`select-all-${voiceName}`}
-                            checked={selectedVoices[voiceName]?.size === samples.length && samples.length > 0}
-                            onCheckedChange={(checked) => toggleAllVoiceSamples(voiceName, checked === true)}
+                            checked={
+                              selectedVoices[voiceName]?.size ===
+                                samples.length && samples.length > 0
+                            }
+                            onCheckedChange={(checked) =>
+                              toggleAllVoiceSamples(voiceName, checked === true)
+                            }
                           />
-                          <Label htmlFor={`select-all-${voiceName}`} className="font-medium">
-                            {voiceName} ({samples.length} sample{samples.length !== 1 ? "s" : ""})
+                          <Label
+                            htmlFor={`select-all-${voiceName}`}
+                            className="font-medium"
+                          >
+                            {voiceName} ({samples.length} sample
+                            {samples.length !== 1 ? "s" : ""})
                           </Label>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-6">
                           {samples.map((sample) => (
-                            <div key={sample} className="flex items-center space-x-2">
+                            <div
+                              key={sample}
+                              className="flex items-center space-x-2"
+                            >
                               <Checkbox
                                 id={`${voiceName}-${sample}`}
                                 checked={selectedVoices[voiceName]?.has(sample)}
-                                onCheckedChange={() => toggleVoiceSample(voiceName, sample)}
+                                onCheckedChange={() =>
+                                  toggleVoiceSample(voiceName, sample)
+                                }
                               />
-                              <Label htmlFor={`${voiceName}-${sample}`} className="text-sm truncate">
+                              <Label
+                                htmlFor={`${voiceName}-${sample}`}
+                                className="text-sm truncate"
+                              >
                                 {sample}
                               </Label>
                             </div>
@@ -293,7 +317,9 @@ export function ModelsDashboard() {
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isCreatingModel}>
-                  {isCreatingModel && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isCreatingModel && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   Create Model
                 </Button>
               </DialogFooter>
@@ -302,15 +328,13 @@ export function ModelsDashboard() {
         </Dialog>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : models.length === 0 ? (
+      {models.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Brain className="h-12 w-12 text-muted-foreground mb-4" />
           <h2 className="text-xl font-semibold">No models found</h2>
-          <p className="text-muted-foreground mt-1 mb-4">Create a model to start identifying speakers.</p>
+          <p className="text-muted-foreground mt-1 mb-4">
+            Create a model to start identifying speakers.
+          </p>
           <Button onClick={() => setIsCreatingModelOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Create Model
@@ -335,17 +359,21 @@ export function ModelsDashboard() {
                       {model.name}
                     </CardTitle>
                     <CardDescription>
-                      {Object.keys(model.voices).length} voice{Object.keys(model.voices).length !== 1 ? "s" : ""}
+                      {Object.keys(model.voices).length} voice
+                      {Object.keys(model.voices).length !== 1 ? "s" : ""}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      {Object.entries(model.voices).map(([voiceName, samples]) => (
-                        <div key={voiceName} className="text-sm">
-                          <span className="font-medium">{voiceName}:</span> {samples.length} sample
-                          {samples.length !== 1 ? "s" : ""}
-                        </div>
-                      ))}
+                      {Object.entries(model.voices).map(
+                        ([voiceName, samples]) => (
+                          <div key={voiceName} className="text-sm">
+                            <span className="font-medium">{voiceName}:</span>{" "}
+                            {samples.length} sample
+                            {samples.length !== 1 ? "s" : ""}
+                          </div>
+                        )
+                      )}
                     </div>
                   </CardContent>
                   <CardFooter>
@@ -375,16 +403,26 @@ export function ModelsDashboard() {
               <CardHeader>
                 <CardTitle>Identify Speaker</CardTitle>
                 <CardDescription>
-                  Upload an audio sample to identify the speaker using the active model.
+                  Upload an audio sample to identify the speaker using the
+                  active model.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleIdentifyVoice} className="space-y-4">
                   <div className="grid gap-2">
                     <Label htmlFor="audio-file">Audio Sample</Label>
-                    <Input id="audio-file" type="file" accept="audio/*" onChange={handleIdentifyFileChange} required />
+                    <Input
+                      id="audio-file"
+                      type="file"
+                      accept="audio/*"
+                      onChange={handleIdentifyFileChange}
+                      required
+                    />
                   </div>
-                  <Button type="submit" disabled={!identifyFile || isIdentifying}>
+                  <Button
+                    type="submit"
+                    disabled={!identifyFile || isIdentifying}
+                  >
                     {isIdentifying ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -404,29 +442,41 @@ export function ModelsDashboard() {
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-medium">Results</h3>
                       <span className="text-sm text-muted-foreground">
-                        Processed in {(identificationResult.processing_time_ms / 1000).toFixed(2)}s
+                        Processed in{" "}
+                        {(
+                          identificationResult.processing_time_ms / 1000
+                        ).toFixed(2)}
+                        s
                       </span>
                     </div>
 
                     <div className="p-4 border rounded-md bg-muted/50">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium">Predicted Speaker:</span>
-                        <span className="text-lg font-bold">{identificationResult.predicted_speaker}</span>
+                        <span className="text-lg font-bold">
+                          {identificationResult.predicted_speaker}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between mb-4">
                         <span className="font-medium">Confidence:</span>
-                        <span>{(identificationResult.confidence * 100).toFixed(2)}%</span>
+                        <span>
+                          {(identificationResult.confidence * 100).toFixed(2)}%
+                        </span>
                       </div>
 
                       <div className="space-y-3">
-                        <h4 className="text-sm font-medium">All Predictions:</h4>
+                        <h4 className="text-sm font-medium">
+                          All Predictions:
+                        </h4>
                         {Object.entries(identificationResult.all_predictions)
                           .sort(([, a], [, b]) => (b as number) - (a as number))
                           .map(([speaker, confidence]) => (
                             <div key={speaker} className="space-y-1">
                               <div className="flex items-center justify-between text-sm">
                                 <span>{speaker}</span>
-                                <span>{((confidence as number) * 100).toFixed(2)}%</span>
+                                <span>
+                                  {((confidence as number) * 100).toFixed(2)}%
+                                </span>
                               </div>
                               <Progress value={(confidence as number) * 100} />
                             </div>
@@ -441,5 +491,5 @@ export function ModelsDashboard() {
         </Tabs>
       )}
     </div>
-  )
+  );
 }
