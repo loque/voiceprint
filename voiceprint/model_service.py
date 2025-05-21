@@ -2,7 +2,7 @@ import logging
 import uuid
 import os
 import json
-from typing import Dict, List
+from typing import Dict, List, Any
 import librosa
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, StandardScaler
@@ -10,6 +10,8 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow.keras import layers, models, regularizers, callbacks, optimizers  # type: ignore
 import matplotlib.pyplot as plt
+from dataclasses import dataclass
+import time
 
 MODEL_FILENAME = "voiceprint_model.h5"
 TRAINING_HISTORY_FILENAME = "training_history.npy"
@@ -20,6 +22,14 @@ LABEL_MAPPING_FILENAME = "label_mapping.npy"
 SCALER_MEAN_FILENAME = "scaler_mean.npy"
 SCALER_SCALE_FILENAME = "scaler_scale.npy"
 
+@dataclass
+class IdentifyResponse:
+    predicted_speaker: str | None = None
+    confidence: float | None = None
+    all_predictions: Dict[str, float] | None = None
+    processing_time_ms: float | None = None
+    error: str | None = None
+    
 Voices = Dict[str, List[str]]
 
 class ModelService:
@@ -72,7 +82,7 @@ class ModelService:
 
         logger.info(f"Model '{model_id}' loaded successfully from '{metadata_path}'")
         return model
-
+        
     def saveMetadata(self):
         """
         Save model metadata (excluding logger and dir) to metadata.json in self.dir.
@@ -280,6 +290,101 @@ class ModelService:
           plot_path = os.path.join(self.dir, TRAINING_HISTORY_PLOT_FILENAME)
           plt.savefig(plot_path)
           self.logger.info(f"Training history plot saved to '{plot_path}'")
+
+    def loadResources(self):
+        self.logger.info("Initializing Interpreter and loading resources...")
+        
+
+        # Load the model
+        model_path = os.path.join(self.dir, MODEL_FILENAME)
+        self.model: tf.keras.Model = tf.keras.models.load_model(model_path)
+        self.logger.info(f"Model loaded from {model_path}.")
+
+        # Load the labels
+        labels_path = os.path.join(self.dir, LABELS_FILENAME)
+        labels_data = np.load(labels_path)
+        self.encoder: LabelEncoder = LabelEncoder()
+        self.encoder.fit(labels_data)
+        self.logger.info(f"Labels loaded from {labels_path}.")
+
+        # Load label mapping
+        label_mapping_path = os.path.join(self.dir, LABEL_MAPPING_FILENAME)
+        label_mapping = np.load(label_mapping_path, allow_pickle=True).item()
+        self.reverse_label_mapping: dict[Any, Any] = {v: k for k, v in label_mapping.items()}
+        self.logger.info(f"Label mapping loaded from {label_mapping_path}.")
+
+        # Load scaler parameters
+        scaler_mean_path = os.path.join(self.dir, SCALER_MEAN_FILENAME)
+        scaler_scale_path = os.path.join(self.dir, SCALER_SCALE_FILENAME)
+        self.scaler_mean: np.ndarray = np.load(scaler_mean_path)
+        self.scaler_scale: np.ndarray = np.load(scaler_scale_path)
+        self.logger.info(f"Scaler parameters loaded from {scaler_mean_path} and {scaler_scale_path}.")
+        
+        self.logger.info("Interpreter initialized and resources loaded successfully.")
+    
+    def identify(self, audio_file_path: str) -> IdentifyResponse:
+        start_time = time.perf_counter()
+
+        try:
+            # Load the audio file
+            y, sr = librosa.load(audio_file_path, sr=None)
+
+            # Extract MFCCs
+            n_mfcc = 13
+            n_frames = 100
+            mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=n_mfcc)
+
+            # Transpose to get time as the first dimension
+            mfccs = mfccs.T
+
+            # Pad or truncate to fixed length
+            if mfccs.shape[0] < n_frames:
+                pad_width = n_frames - mfccs.shape[0]
+                mfccs = np.pad(mfccs, ((0, pad_width), (0, 0)), mode='constant')
+            else:
+                mfccs = mfccs[:n_frames, :]
+
+            # Add channel dimension for CNN
+            mfccs = np.expand_dims(mfccs, axis=-1)
+
+            # Add batch dimension
+            mfccs = np.expand_dims(mfccs, axis=0)
+
+            # Apply scaling
+            mfccs_flat = mfccs.reshape(mfccs.shape[0], -1)
+            if mfccs_flat.shape[1] == self.scaler_mean.shape[0]:
+                mfccs_flat = (mfccs_flat - self.scaler_mean) / self.scaler_scale
+                mfccs = mfccs_flat.reshape(mfccs.shape)
+                self.logger.info("Scaling applied to input.")
+            else:
+                self.logger.warning(f"Warning: MFCC features shape {mfccs_flat.shape[1]} mismatch with scaler mean shape {self.scaler_mean.shape[0]}. Skipping scaling.")
+
+
+            # Predict
+            prediction_result = self.model.predict(mfccs, verbose=0)
+
+            predicted_class_idx = np.argmax(prediction_result, axis=1)[0]
+            confidence = float(prediction_result[0][predicted_class_idx])
+            speaker_name = self.reverse_label_mapping.get(predicted_class_idx, "Unknown")
+
+            all_predictions = {
+                self.reverse_label_mapping.get(i, "Unknown"): float(conf)
+                for i, conf in enumerate(prediction_result[0])
+            }
+            
+            processing_time_ms = (time.perf_counter() - start_time) * 1000
+            
+            return IdentifyResponse(
+                predicted_speaker=speaker_name,
+                confidence=confidence,
+                all_predictions=all_predictions,
+                processing_time_ms=processing_time_ms
+            )
+
+        except Exception as e:
+            self.logger.error(f"Error during identification: {e}", exc_info=True)
+            processing_time_ms = (time.perf_counter() - start_time) * 1000
+            return IdentifyResponse(error=str(e), processing_time_ms=processing_time_ms)
 
 
 # Create data augmentation for training using tf.data API
