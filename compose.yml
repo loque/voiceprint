@@ -1,5 +1,7 @@
 services:
   http_server:
+    container_name: voiceprint_http_server
+    image: voiceprint_http_server
     build: ./voiceprint
     ports:
       - "5000:5000"
