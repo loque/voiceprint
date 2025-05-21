@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 
 # Suppress TensorFlow logging early
@@ -17,6 +17,10 @@ def create_app():
     stream_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
     app.logger.addHandler(stream_handler)
+
+    @app.route('/samples/<path:path>')
+    def send_sample(path):
+        return send_from_directory('../voices', path)
 
     from .voices import voices
     app.register_blueprint(voices, url_prefix='/voices')
