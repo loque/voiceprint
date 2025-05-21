@@ -38,6 +38,7 @@ export function VoicesDashboard({
 }: {
   voices: Record<string, string[]>;
 }) {
+  const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
   const [newVoiceName, setNewVoiceName] = useState("");
   const [isAddingVoice, setIsAddingVoice] = useState(false);
   const [isAddingVoiceOpen, setIsAddingVoiceOpen] = useState(false);
@@ -240,66 +241,25 @@ export function VoicesDashboard({
           </Button>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Object.entries(voices).map(([voiceName, samples]) => (
-            <Card key={voiceName}>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Mic className="mr-2 h-5 w-5" />
-                  {voiceName}
-                </CardTitle>
-                <CardDescription>
-                  {samples.length} sample{samples.length !== 1 ? "s" : ""}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {samples.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      No samples added yet.
-                    </p>
-                  ) : (
-                    samples.map((sample) => (
-                      <div
-                        key={sample}
-                        className="flex items-center justify-between rounded-md border p-2"
-                      >
-                        <span className="text-sm truncate max-w-[180px]">
-                          {sample}
-                        </span>
-                        <div className="flex space-x-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handlePlaySample(voiceName, sample)}
-                            aria-label={
-                              currentlyPlaying === `${voiceName}/${sample}`
-                                ? "Stop"
-                                : "Play"
-                            }
-                          >
-                            {currentlyPlaying === `${voiceName}/${sample}` ? (
-                              <Pause className="h-4 w-4 text-primary" />
-                            ) : (
-                              <Play className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              handleDeleteVoiceSample(voiceName, sample)
-                            }
-                            aria-label="Delete sample"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  )}
+        <div className="flex gap-6 w-full">
+          <div className="flex flex-col gap-6 w-80">
+            {Object.entries(voices).map(([voiceName, samples]) => (
+              <div
+                key={voiceName}
+                onClick={() => setSelectedVoice(voiceName)}
+                className="flex items-center"
+              >
+                <Mic className="mr-2 h-5 w-5" />
+                <div className="ml-4 space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {voiceName}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {samples.length} sample{samples.length !== 1 ? "s" : ""}
+                  </p>
                 </div>
-              </CardContent>
+                {/* 
+                
               <CardFooter>
                 <div className="w-full">
                   <Label
@@ -323,9 +283,60 @@ export function VoicesDashboard({
                     />
                   </Label>
                 </div>
-              </CardFooter>
-            </Card>
-          ))}
+              </CardFooter> */}
+              </div>
+            ))}
+          </div>
+          <div className="flex-1">
+            {selectedVoice && (
+              <div className="space-y-2">
+                {!voices[selectedVoice]?.length ? (
+                  <p className="text-sm text-muted-foreground">
+                    No samples added yet.
+                  </p>
+                ) : (
+                  voices[selectedVoice].map((sample) => (
+                    <div
+                      key={sample}
+                      className="flex items-center justify-between rounded-md border p-2"
+                    >
+                      <span className="text-sm">{sample}</span>
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            handlePlaySample(selectedVoice, sample)
+                          }
+                          aria-label={
+                            currentlyPlaying === `${selectedVoice}/${sample}`
+                              ? "Stop"
+                              : "Play"
+                          }
+                        >
+                          {currentlyPlaying === `${selectedVoice}/${sample}` ? (
+                            <Pause className="h-4 w-4 text-primary" />
+                          ) : (
+                            <Play className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            handleDeleteVoiceSample(selectedVoice, sample)
+                          }
+                          aria-label="Delete sample"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

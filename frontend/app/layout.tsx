@@ -24,7 +24,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <div className="flex min-h-screen flex-col">
             <Navbar />
-            <main className="flex-1 container py-6">{children}</main>
+            <main className="flex-1 py-6">{children}</main>
           </div>
           <Toaster />
         </ThemeProvider>
