@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { getAudioUrl } from "@/lib/api";
+import { API_BASE_URL } from "@/api/constants";
 
 type VoiceDashboardProps = {
   voices: Record<string, string[]>;
@@ -120,16 +120,7 @@ export function VoicesDashboard({
     }
 
     // Get the audio URL from our store
-    const audioUrl = getAudioUrl(voiceName, sampleName);
-    if (!audioUrl) {
-      toast({
-        title: "Error playing sample",
-        description: "Could not find audio file.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    const audioUrl = `${API_BASE_URL}/samples/${sampleId}`;
     const audio = new Audio(audioUrl);
     audioRef.current = audio;
 

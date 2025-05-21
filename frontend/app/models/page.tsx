@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { ModelsDashboard } from "@/components/models-dashboard";
-import { API_BASE_URL } from "@/lib/api";
 import ky from "ky";
 import { revalidatePath } from "next/cache";
-import { VoiceData } from "@/lib/store";
+import { API_BASE_URL } from "@/api/constants";
+import { VoiceData } from "@/api/dto";
 
 export const metadata: Metadata = {
   title: "Models Dashboard | VoicePrint",

@@ -29,8 +29,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import type { Model, VoiceData } from "@/lib/store";
 import { IdentificationResult } from "@/app/models/page";
+import { Model, VoiceData } from "@/api/dto";
 
 type ModelsDashboardProps = {
   models: Model[];
