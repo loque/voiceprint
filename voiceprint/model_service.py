@@ -22,26 +22,26 @@ SCALER_SCALE_FILENAME = "scaler_scale.npy"
 
 Voices = Dict[str, List[str]]
 
-class Model:
+class ModelService:
     @staticmethod
     def create(name: str, voices: Voices, logger: logging.Logger, cwd: str):
         model_id = uuid.uuid4().hex[:8]
         model_dir = os.path.join(cwd, 'models', model_id)
         os.makedirs(model_dir, exist_ok=True)
 
-        model = Model.__new__(Model)
-        model.id = model_id
-        model.dir = model_dir
-        model.name = name
-        model.voices = voices
-        model.logger = logger
-        model.mfccs = None
-        model.labels = None
-        model.label_mapping = None
-        model.scaler_mean = None
-        model.scaler_scale = None
+        model_service = ModelService.__new__(ModelService)
+        model_service.id = model_id
+        model_service.dir = model_dir
+        model_service.name = name
+        model_service.voices = voices
+        model_service.logger = logger
+        model_service.mfccs = None
+        model_service.labels = None
+        model_service.label_mapping = None
+        model_service.scaler_mean = None
+        model_service.scaler_scale = None
 
-        return model
+        return model_service
     
     @staticmethod
     def load(model_id: str, cwd: str, logger: logging.Logger):
@@ -58,7 +58,7 @@ class Model:
         with open(metadata_path, 'r') as f:
             metadata = json.load(f)
 
-        model = Model.__new__(Model)
+        model = ModelService.__new__(ModelService)
         model.id = metadata['id']
         model.name = metadata['name']
         model.voices = metadata['voices']

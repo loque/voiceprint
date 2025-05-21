@@ -1,8 +1,7 @@
 import os
 from flask import Blueprint, request, jsonify, current_app
-import uuid
 import json
-from voiceprint.model import Model
+from voiceprint.model_service import ModelService
 
 main = Blueprint('main', __name__)
 
@@ -37,7 +36,7 @@ def create_model():
     # Instantiate the Model class
     logger = current_app.logger
     cwd = current_app.instance_path
-    model = Model.create(name=model_name, voices=model_voices, logger=logger, cwd=cwd)
+    model = ModelService.create(name=model_name, voices=model_voices, logger=logger, cwd=cwd)
     
     try:
         # Extract MFCCs, train the model, and save metadata
