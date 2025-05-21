@@ -47,9 +47,6 @@ class ModelService:
         model_service.name = name
         model_service.voices = voices
         model_service.logger = logger
-        model_service.mfccs = None
-        model_service.labels = None
-        model_service.label_mapping = None
         model_service.scaler_mean = None
         model_service.scaler_scale = None
 
@@ -74,9 +71,6 @@ class ModelService:
         model.id = metadata['id']
         model.name = metadata['name']
         model.voices = metadata['voices']
-        model.mfccs = metadata['mfccs']
-        model.labels = metadata['labels']
-        model.label_mapping = metadata['label_mapping']
         model.scaler_mean = metadata['scaler_mean']
         model.scaler_scale = metadata['scaler_scale']
         model.path = model_path
@@ -94,11 +88,6 @@ class ModelService:
             "id": self.id,
             "name": self.name,
             "voices": self.voices,
-            "mfccs": self.mfccs if self.mfccs is not None else None,
-            "labels": self.labels if self.labels is not None else None,
-            "label_mapping": self.label_mapping if self.label_mapping is not None else None,
-            "scaler_mean": self.scaler_mean if self.scaler_mean is not None else None,
-            "scaler_scale": self.scaler_scale if self.scaler_scale is not None else None,
         }
         with open(os.path.join(self.path, "metadata.json"), "w") as f:
             json.dump(metadata, f, indent=2)
@@ -140,14 +129,14 @@ class ModelService:
         
         label_mapping = dict(zip(encoder.classes_, range(len(encoder.classes_))))
         
-        self.mfccs = os.path.join(self.path, MFCCS_FILENAME)
-        self.labels = os.path.join(self.path, LABELS_FILENAME)
-        self.label_mapping = os.path.join(self.path, LABEL_MAPPING_FILENAME)
+        mfccs_path = os.path.join(self.path, MFCCS_FILENAME)
+        labels_path = os.path.join(self.path, LABELS_FILENAME)
+        label_mapping_path = os.path.join(self.path, LABEL_MAPPING_FILENAME)
 
         # Save files
-        np.save(self.mfccs, processed_mfccs)
-        np.save(self.labels, encoded_labels)
-        np.save(self.label_mapping, label_mapping)
+        np.save(mfccs_path, processed_mfccs)
+        np.save(labels_path, encoded_labels)
+        np.save(label_mapping_path, label_mapping)
 
         self.logger.info(f"Extracted MFCCs for {len(processed_mfccs)} files to {self.path}")
     
@@ -156,8 +145,10 @@ class ModelService:
           Train a voiceprint model using the MFCCs and labels stored in self.path.
           """
           # Load data
-          mfccs = np.load(self.mfccs)
-          labels = np.load(self.labels)
+          mfccs_path = os.path.join(self.path, MFCCS_FILENAME)
+          labels_path = os.path.join(self.path, LABELS_FILENAME)
+          mfccs = np.load(mfccs_path)
+          labels = np.load(labels_path)
 
           # Ensure consistent shapes (e.g., add channel dimension for CNN)
           if len(mfccs.shape) == 3:  # Shape: (n_samples, n_frames, n_mfcc)
