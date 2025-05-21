@@ -139,7 +139,7 @@ class Model:
 
         train_dataset = tf.data.Dataset.from_tensor_slices((X_train_tensor, y_train_tensor))
         train_dataset = train_dataset.shuffle(buffer_size=X_train.shape[0])
-        train_dataset = train_dataset.map(augment_map_fn, num_parallel_calls=tf.data.AUTOTUNE)
+        train_dataset = train_dataset.map(_augment_map_fn, num_parallel_calls=tf.data.AUTOTUNE)
         train_dataset = train_dataset.batch(batch_size).prefetch(tf.data.AUTOTUNE)
 
         val_dataset = tf.data.Dataset.from_tensor_slices((X_test_tensor, y_test_tensor))
@@ -239,7 +239,7 @@ class Model:
 
 
 # Create data augmentation for training using tf.data API
-def augment_map_fn(x, y):
+def _augment_map_fn(x, y):
     """Apply augmentation to a single example"""
     # Random noise
     if tf.random.uniform([], 0, 1) > 0.5:
