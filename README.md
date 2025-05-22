@@ -10,6 +10,11 @@
 
 **Final Goal:** Integrate Voiceprint as part of the [Home Assistant](https://www.home-assistant.io/) assist pipeline for local, privacy-friendly speaker identification.
 
+## Repository Structure
+
+- **voiceprint/**: Written in Python, this is the backend responsible for generating speaker detection models and using them to identify speakers from audio samples.
+- **frontend/**: Written in TypeScript with React/Next.js, this provides a graphical user interface (GUI) for interacting with the backend.
+
 ## How to Run
 
 You can run Voiceprint using Docker and Docker Compose. This is the recommended way to get started quickly without worrying about dependencies.
@@ -35,7 +40,7 @@ You can run Voiceprint using Docker and Docker Compose. This is the recommended 
 ---
 
 This project is in early development. Contributions and feedback are welcome!
-  
+
 ---
 
 Follow me on X: [@loque_js](https://x.com/loque_js)
