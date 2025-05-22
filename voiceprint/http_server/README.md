@@ -1,6 +1,6 @@
 # HTTP Server Endpoints
 
-This document describes the available endpoints in the `server.py` file, their arguments, responses, and provides sample `curl` commands for testing.
+This document describes the available endpoints provided by the HTTP server, their arguments, responses, and provides sample `curl` commands for testing.
 
 ## Endpoints
 
