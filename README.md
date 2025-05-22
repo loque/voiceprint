@@ -35,3 +35,7 @@ You can run Voiceprint using Docker and Docker Compose. This is the recommended 
 ---
 
 This project is in early development. Contributions and feedback are welcome!
+  
+---
+
+Follow me on X: [@loque_js](https://x.com/loque_js)
