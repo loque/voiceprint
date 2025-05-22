@@ -6,7 +6,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./voiceprint/voices:/app/voices
+      - ./voiceprint/speakers:/app/speakers
       - ./voiceprint/models:/app/models
     user: "1000:1000"
 

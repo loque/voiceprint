@@ -4,8 +4,6 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV VOICES_PATH=/app/voices
-ENV MODELS_PATH=/app/models
 
 # Create a non-root user with UID 1000
 RUN useradd -m -u 1000 appuser
@@ -20,6 +18,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install http server dependencies
 COPY http_server/requirements.txt /app/http_server/
 RUN pip install --no-cache-dir -r /app/http_server/requirements.txt
+
+
+ENV SPEAKERS_PATH=/app/speakers
+ENV MODELS_PATH=/app/models
 
 # Copy the application code
 COPY . /app/

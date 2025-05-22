@@ -1,6 +1,6 @@
 .idea/*
 
 voiceprint/models/*
-voiceprint/voices/*
+voiceprint/speakers/*
 
 !.gitkeep

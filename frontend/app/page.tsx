@@ -1,28 +1,28 @@
 import type { Metadata } from "next";
-import { VoicesDashboard } from "@/components/voices-dashboard";
+import { SpeakersDashboard } from "@/components/speakers-dashboard";
 import {
-  addVoice,
-  addVoiceSample,
-  deleteVoiceSample,
-  getVoices,
-} from "@/api/voices";
+  addSpeaker,
+  addSpeakerSample,
+  deleteSpeakerSample,
+  getSpeakers,
+} from "@/api/speakers";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Voices Dashboard | VoicePrint",
+  title: "Speakers Dashboard | Voiceprint",
   description: "Manage voice samples for speaker identification",
 };
 
-export default async function VoicesPage() {
-  const voices = await getVoices();
+export default async function SpeakersPage() {
+  const speakers = await getSpeakers();
 
   return (
-    <VoicesDashboard
-      voices={voices}
-      addVoice={addVoice}
-      addVoiceSample={addVoiceSample}
-      deleteVoiceSample={deleteVoiceSample}
+    <SpeakersDashboard
+      speakers={speakers}
+      addSpeaker={addSpeaker}
+      addSpeakerSample={addSpeakerSample}
+      deleteSpeakerSample={deleteSpeakerSample}
     />
   );
 }

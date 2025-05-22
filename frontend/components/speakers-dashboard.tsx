@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState, useRef } from "react";
-import { Mic, Plus, Trash2, Play, Pause, Loader2 } from "lucide-react";
+import { Mic, Plus, Trash2, Play, Loader2, CircleStop } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 import { Button } from "@/components/ui/button";
@@ -19,91 +19,91 @@ import {
 import { Label } from "@/components/ui/label";
 import { API_BASE_URL } from "@/api/constants";
 
-type VoiceDashboardProps = {
-  voices: Record<string, string[]>;
-  addVoice: ({ name }: { name: string }) => Promise<void>;
-  addVoiceSample: ({
-    voiceName,
+type SpeakersDashboardProps = {
+  speakers: Record<string, string[]>;
+  addSpeaker: ({ name }: { name: string }) => Promise<void>;
+  addSpeakerSample: ({
+    speakerName,
     file,
   }: {
-    voiceName: string;
+    speakerName: string;
     file: File;
   }) => Promise<void>;
-  deleteVoiceSample: ({
-    voiceName,
+  deleteSpeakerSample: ({
+    speakerName,
     sampleName,
   }: {
-    voiceName: string;
+    speakerName: string;
     sampleName: string;
   }) => Promise<void>;
 };
 
-export function VoicesDashboard({
-  voices,
-  addVoice,
-  addVoiceSample,
-  deleteVoiceSample,
-}: VoiceDashboardProps) {
-  const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
-  const [newVoiceName, setNewVoiceName] = useState("");
-  const [isAddingVoice, setIsAddingVoice] = useState(false);
-  const [isAddingVoiceOpen, setIsAddingVoiceOpen] = useState(false);
+export function SpeakersDashboard({
+  speakers,
+  addSpeaker,
+  addSpeakerSample,
+  deleteSpeakerSample,
+}: SpeakersDashboardProps) {
+  const [selectedSpeaker, setSelectedSpeaker] = useState<string | null>(null);
+  const [newSpeakerName, setNewSpeakerName] = useState("");
+  const [isAddingSpeaker, setIsAddingSpeaker] = useState(false);
+  const [isAddingSpeakerOpen, setIsAddingSpeakerOpen] = useState(false);
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
-  async function handleAddVoice(e: React.FormEvent) {
+  async function handleAddSpeaker(e: React.FormEvent) {
     e.preventDefault();
-    if (!newVoiceName.trim()) return;
+    if (!newSpeakerName.trim()) return;
 
     try {
-      setIsAddingVoice(true);
-      await addVoice({ name: newVoiceName });
-      setNewVoiceName("");
-      setIsAddingVoiceOpen(false);
+      setIsAddingSpeaker(true);
+      await addSpeaker({ name: newSpeakerName });
+      setNewSpeakerName("");
+      setIsAddingSpeakerOpen(false);
     } catch (error) {
-      console.error("Error adding voice:", error);
+      console.error("Error adding speaker:", error);
       toast({
-        title: "Error adding voice",
-        description: "Could not add voice. Please try again.",
+        title: "Error adding speaker",
+        description: "Could not add speaker. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setIsAddingVoice(false);
+      setIsAddingSpeaker(false);
     }
   }
 
-  async function handleAddVoiceSample(voiceName: string, file: File) {
+  async function handleAddSpeakerSample(speakerName: string, file: File) {
     try {
-      await addVoiceSample({ voiceName, file });
+      await addSpeakerSample({ speakerName, file });
     } catch (error) {
-      console.error("Error adding voice sample:", error);
+      console.error("Error adding speaker sample:", error);
       toast({
         title: "Error adding sample",
-        description: "Could not add voice sample. Please try again.",
+        description: "Could not add speaker sample. Please try again.",
         variant: "destructive",
       });
     }
   }
 
-  async function handleDeleteVoiceSample(
-    voiceName: string,
+  async function handleDeleteSpeakerSample(
+    speakerName: string,
     sampleName: string
   ) {
     try {
-      await deleteVoiceSample({ voiceName, sampleName });
+      await deleteSpeakerSample({ speakerName, sampleName });
     } catch (error) {
-      console.error("Error deleting voice sample:", error);
+      console.error("Error deleting speaker sample:", error);
       toast({
         title: "Error deleting sample",
-        description: "Could not delete voice sample. Please try again.",
+        description: "Could not delete speaker sample. Please try again.",
         variant: "destructive",
       });
     }
   }
 
-  function handlePlaySample(voiceName: string, sampleName: string) {
-    const sampleId = `${voiceName}/${sampleName}`;
+  function handlePlaySample(speakerName: string, sampleName: string) {
+    const sampleId = `${speakerName}/${sampleName}`;
 
     if (currentlyPlaying === sampleId) {
       if (audioRef.current) {
@@ -132,7 +132,7 @@ export function VoicesDashboard({
       console.error("Error playing audio:", error);
       toast({
         title: "Error playing sample",
-        description: "Could not play voice sample. Please try again.",
+        description: "Could not play speaker sample. Please try again.",
         variant: "destructive",
       });
       setCurrentlyPlaying(null);
@@ -142,7 +142,7 @@ export function VoicesDashboard({
   }
 
   function handleFileUpload(
-    voiceName: string,
+    speakerName: string,
     e: React.ChangeEvent<HTMLInputElement>
   ) {
     const file = e.target.files?.[0];
@@ -158,7 +158,7 @@ export function VoicesDashboard({
       return;
     }
 
-    handleAddVoiceSample(voiceName, file);
+    handleAddSpeakerSample(speakerName, file);
     e.target.value = "";
   }
 
@@ -167,39 +167,42 @@ export function VoicesDashboard({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Voices Dashboard
+            Speakers Dashboard
           </h1>
           <p className="text-muted-foreground">
-            Manage voice samples for speaker identification
+            Manage speaker samples for speaker identification
           </p>
         </div>
-        <Dialog open={isAddingVoiceOpen} onOpenChange={setIsAddingVoiceOpen}>
+        <Dialog
+          open={isAddingSpeakerOpen}
+          onOpenChange={setIsAddingSpeakerOpen}
+        >
           <DialogContent>
-            <form onSubmit={handleAddVoice}>
+            <form onSubmit={handleAddSpeaker}>
               <DialogHeader>
-                <DialogTitle>Add New Voice</DialogTitle>
+                <DialogTitle>Add New Speaker</DialogTitle>
                 <DialogDescription>
-                  Enter a name for the new voice profile.
+                  Enter a name for the new speaker profile.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Voice Name</Label>
+                  <Label htmlFor="name">Speaker Name</Label>
                   <Input
                     id="name"
-                    value={newVoiceName}
-                    onChange={(e) => setNewVoiceName(e.target.value)}
+                    value={newSpeakerName}
+                    onChange={(e) => setNewSpeakerName(e.target.value)}
                     placeholder="e.g., John, Sarah"
                     required
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={isAddingVoice}>
-                  {isAddingVoice && (
+                <Button type="submit" disabled={isAddingSpeaker}>
+                  {isAddingSpeaker && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Add Voice
+                  Add Speaker
                 </Button>
               </DialogFooter>
             </form>
@@ -207,74 +210,48 @@ export function VoicesDashboard({
         </Dialog>
       </div>
 
-      {Object.keys(voices).length === 0 ? (
+      {Object.keys(speakers).length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Mic className="h-12 w-12 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold">No voices found</h2>
+          <h2 className="text-xl font-semibold">No speakers found</h2>
           <p className="text-muted-foreground mt-1 mb-4">
-            Add a voice to get started with voice identification.
+            Add a speaker to get started with voice identification.
           </p>
-          <Button onClick={() => setIsAddingVoiceOpen(true)}>
+          <Button onClick={() => setIsAddingSpeakerOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Voice
+            Add Speaker
           </Button>
         </div>
       ) : (
         <div className="flex gap-6 w-full">
           <div className="flex flex-col gap-6 w-80">
-            <Button onClick={() => setIsAddingVoiceOpen(true)}>
+            <Button onClick={() => setIsAddingSpeakerOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Add Voice
+              Add Speaker
             </Button>
-            {Object.entries(voices).map(([voiceName, samples]) => (
+            {Object.entries(speakers).map(([speakerName, samples]) => (
               <div
-                key={voiceName}
-                onClick={() => setSelectedVoice(voiceName)}
+                key={speakerName}
+                onClick={() => setSelectedSpeaker(speakerName)}
                 className="flex items-center"
               >
                 <Mic className="mr-2 h-5 w-5" />
                 <div className="ml-4 space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {voiceName}
+                    {speakerName}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {samples.length} sample{samples.length !== 1 ? "s" : ""}
                   </p>
                 </div>
-                {/* 
-                
-              <CardFooter>
-                <div className="w-full">
-                  <Label
-                    htmlFor={`file-upload-${voiceName}`}
-                    className="w-full"
-                  >
-                    <div className="flex items-center justify-center w-full">
-                      <Button variant="outline" className="w-full" asChild>
-                        <div>
-                          <Plus className="mr-2 h-4 w-4" />
-                          Add Sample
-                        </div>
-                      </Button>
-                    </div>
-                    <Input
-                      id={`file-upload-${voiceName}`}
-                      type="file"
-                      accept="audio/*"
-                      className="hidden"
-                      onChange={(e) => handleFileUpload(voiceName, e)}
-                    />
-                  </Label>
-                </div>
-              </CardFooter> */}
               </div>
             ))}
           </div>
           <div className="flex-1">
-            {selectedVoice && (
+            {selectedSpeaker && (
               <>
                 <Label
-                  htmlFor={`file-upload-${selectedVoice}`}
+                  htmlFor={`file-upload-${selectedSpeaker}`}
                   className="w-full"
                 >
                   <div className="flex items-center justify-center w-full">
@@ -286,20 +263,20 @@ export function VoicesDashboard({
                     </Button>
                   </div>
                   <Input
-                    id={`file-upload-${selectedVoice}`}
+                    id={`file-upload-${selectedSpeaker}`}
                     type="file"
                     accept="audio/*"
                     className="hidden"
-                    onChange={(e) => handleFileUpload(selectedVoice, e)}
+                    onChange={(e) => handleFileUpload(selectedSpeaker, e)}
                   />
                 </Label>
                 <div className="space-y-2">
-                  {!voices[selectedVoice]?.length ? (
+                  {!speakers[selectedSpeaker]?.length ? (
                     <p className="text-sm text-muted-foreground">
                       No samples added yet.
                     </p>
                   ) : (
-                    voices[selectedVoice].map((sample) => (
+                    speakers[selectedSpeaker].map((sample) => (
                       <div
                         key={sample}
                         className="flex items-center justify-between rounded-md border p-2"
@@ -310,17 +287,18 @@ export function VoicesDashboard({
                             variant="ghost"
                             size="icon"
                             onClick={() =>
-                              handlePlaySample(selectedVoice, sample)
+                              handlePlaySample(selectedSpeaker, sample)
                             }
                             aria-label={
-                              currentlyPlaying === `${selectedVoice}/${sample}`
+                              currentlyPlaying ===
+                              `${selectedSpeaker}/${sample}`
                                 ? "Stop"
                                 : "Play"
                             }
                           >
                             {currentlyPlaying ===
-                            `${selectedVoice}/${sample}` ? (
-                              <Pause className="h-4 w-4 text-primary" />
+                            `${selectedSpeaker}/${sample}` ? (
+                              <CircleStop className="h-4 w-4 text-primary" />
                             ) : (
                               <Play className="h-4 w-4" />
                             )}
@@ -329,7 +307,7 @@ export function VoicesDashboard({
                             variant="ghost"
                             size="icon"
                             onClick={() =>
-                              handleDeleteVoiceSample(selectedVoice, sample)
+                              handleDeleteSpeakerSample(selectedSpeaker, sample)
                             }
                             aria-label="Delete sample"
                           >

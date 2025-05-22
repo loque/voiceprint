@@ -3,12 +3,12 @@
 import ky from "ky";
 import { revalidatePath } from "next/cache";
 import { API_BASE_URL } from "./constants";
-import { VoiceData } from "./voices";
+import { SpeakersData } from "./speakers";
 
 export type Model = {
   id: string;
   name: string;
-  voices: VoiceData;
+  speakers: SpeakersData;
   isLoaded?: boolean;
 };
 
@@ -26,17 +26,17 @@ export async function getModels() {
 
 export async function createModel({
   name,
-  voices,
+  speakers,
 }: {
   name: string;
-  voices: VoiceData;
+  speakers: SpeakersData;
 }) {
   "use server";
   await ky
     .post(`${API_BASE_URL}/models`, {
       json: {
         name,
-        voices,
+        speakers,
       },
       timeout: false,
     })
@@ -50,7 +50,7 @@ export async function loadModel({ modelId }: { modelId: string }) {
   revalidatePath("/models");
 }
 
-export async function identifyVoice({
+export async function identifySpeaker({
   modelId,
   audioFile,
 }: {
@@ -61,7 +61,10 @@ export async function identifyVoice({
   const formData = new FormData();
   formData.append("file", audioFile);
   const response = await ky
-    .post(`${API_BASE_URL}/models/${modelId}/identify`, { body: formData })
+    .post(`${API_BASE_URL}/models/${modelId}/identify`, {
+      body: formData,
+      timeout: false,
+    })
     .json();
   revalidatePath("/models");
   return response as IdentificationResult;

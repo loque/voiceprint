@@ -4,16 +4,16 @@ This document describes the available endpoints in the `server.py` file, their a
 
 ## Endpoints
 
-### Voices Endpoints
+### Speakers Endpoints
 
-#### 1. **GET /voices**
+#### 1. **GET /speakers**
 
 **Description:**
-Fetches a list of available voices. The voices are returned as a dictionary where the keys are voice names and the values are lists of `.wav` files.
+Fetches a list of available speakers. The speakers are returned as a dictionary where the keys are speaker names and the values are lists of `.wav` files.
 
 **Response:**
 
-- **200 OK**: Returns a JSON object of voices with the following structure:
+- **200 OK**: Returns a JSON object of speakers with the following structure:
 
 **Sample Response:**
 
@@ -27,15 +27,15 @@ Fetches a list of available voices. The voices are returned as a dictionary wher
 **Sample `curl` Command:**
 
 ```bash
-curl -X GET http://localhost:5000/voices
+curl -X GET http://localhost:5000/speakers
 ```
 
 ---
 
-#### 2. **POST /voices**
+#### 2. **POST /speakers**
 
 **Description:**
-Adds a new voice by creating a directory for it.
+Adds a new speaker by creating a directory for it.
 
 **Request Body:**
 
@@ -47,23 +47,23 @@ Adds a new voice by creating a directory for it.
 
 **Response:**
 
-- **201 Created**: Voice added successfully.
-- **400 Bad Request**: Missing voice name in the request body.
+- **201 Created**: Speaker added successfully.
+- **400 Bad Request**: Missing speaker name in the request body.
 
 **Sample `curl` Command:**
 
 ```bash
-curl -X POST http://localhost:5000/voices \
+curl -X POST http://localhost:5000/speakers \
   -H "Content-Type: application/json" \
   -d '{"name": "lucas"}'
 ```
 
 ---
 
-#### 3. **POST /voices/<voice_name>**
+#### 3. **POST /speakers/<speaker_name>/samples**
 
 **Description:**
-Adds a new voice sample to the specified voice.
+Adds a new sample to the specified speaker.
 
 **Request:**
 
@@ -72,32 +72,32 @@ Adds a new voice sample to the specified voice.
 
 **Response:**
 
-- **201 Created**: Voice file added successfully.
+- **201 Created**: Speaker sample added successfully.
 - **400 Bad Request**: Missing or invalid file.
 
 **Sample `curl` Command:**
 
 ```bash
-curl -X POST http://localhost:5000/voices/lucas \
+curl -X POST http://localhost:5000/speakers/lucas/samples \
   -F "file=@path_to_audio_file.wav"
 ```
 
 ---
 
-#### 4. **DELETE /voices/<voice_name>/<sample_name>**
+#### 4. **DELETE /speakers/<speaker_name>/samples/<sample_name>**
 
 **Description:**
-Deletes a specific voice sample from the specified voice.
+Deletes a specific sample from the specified speaker.
 
 **Response:**
 
-- **200 OK**: Voice file deleted successfully.
+- **200 OK**: Speaker sample deleted successfully.
 - **404 Not Found**: File not found.
 
 **Sample `curl` Command:**
 
 ```bash
-curl -X DELETE http://localhost:5000/voices/lucas/sample1.wav
+curl -X DELETE http://localhost:5000/speakers/lucas/samples/sample1.wav
 ```
 
 ---
@@ -107,7 +107,7 @@ curl -X DELETE http://localhost:5000/voices/lucas/sample1.wav
 #### 1. **GET /models**
 
 **Description:**
-Fetches a list of available models. Each model includes only the `id`, `name`, and `voices` fields.
+Fetches a list of available models. Each model includes only the `id`, `name`, and `speakers` fields.
 
 **Response:**
 
@@ -120,7 +120,7 @@ Fetches a list of available models. Each model includes only the `id`, `name`, a
   {
     "id": "model1",
     "name": "Model One",
-    "voices": {
+    "speakers": {
       "lucas": ["file1.wav", "file2.wav"],
       "olivia": ["file3.wav"]
     }
@@ -128,7 +128,7 @@ Fetches a list of available models. Each model includes only the `id`, `name`, a
   {
     "id": "model2",
     "name": "Model Two",
-    "voices": {
+    "speakers": {
       "ryan": ["file4.wav"],
       "amelia": ["file5.wav", "file6.wav"]
     }
@@ -147,13 +147,13 @@ curl -X GET http://localhost:5000/models
 #### 2. **POST /models**
 
 **Description:**
-Creates a new model using the provided voices and name.
+Creates a new model using the provided speakers and name.
 
 **Request Body:**
 
 ```json
 {
-  "voices": {
+  "speakers": {
     "lucas": ["file1.wav", "file2.wav"],
     "olivia": ["file3.wav"]
   },
@@ -164,7 +164,7 @@ Creates a new model using the provided voices and name.
 **Response:**
 
 - **200 OK**: Model created successfully.
-- **400 Bad Request**: Missing voices or name in the request body.
+- **400 Bad Request**: Missing speakers or name in the request body.
 - **500 Internal Server Error**: Failed to create the model.
 
 **Sample `curl` Command:**
@@ -172,12 +172,12 @@ Creates a new model using the provided voices and name.
 ```bash
 curl -X POST http://localhost:5000/models \
   -H "Content-Type: application/json" \
-  -d '{"voices": {"lucas": ["file1.wav", "file2.wav"], "olivia": ["file3.wav"]}, "name": "Model Three"}'
+  -d '{"speakers": {"lucas": ["file1.wav", "file2.wav"], "olivia": ["file3.wav"]}, "name": "Model Three"}'
 ```
 
 ---
 
-#### 3. **POST /models/<model_id>**
+#### 3. **PUT /models/<model_id>**
 
 **Description:**
 Loads a model by its ID.
@@ -190,7 +190,7 @@ Loads a model by its ID.
 **Sample `curl` Command:**
 
 ```bash
-curl -X POST http://localhost:5000/models/<model_id>
+curl -X PUT http://localhost:5000/models/<model_id>
 ```
 
 ---
@@ -203,7 +203,7 @@ Identifies the speaker in the provided audio file using the specified model.
 **Request:**
 
 - **Form Data:**
-  - `audio_file`: The audio file to be analyzed.
+  - `file`: The audio file to be analyzed.
 
 **Response:**
 
@@ -230,5 +230,5 @@ Identifies the speaker in the provided audio file using the specified model.
 
 ```bash
 curl -X POST http://localhost:5000/models/<model_id>/identify \
-  -F "audio_file=@path_to_audio_file.wav"
+  -F "file=@path_to_audio_file.wav"
 ```

@@ -1,26 +1,31 @@
 import type { Metadata } from "next";
 import { ModelsDashboard } from "@/components/models-dashboard";
-import { getModels, createModel, loadModel, identifyVoice } from "@/api/models";
-import { getVoices } from "@/api/voices";
+import {
+  getModels,
+  createModel,
+  loadModel,
+  identifySpeaker,
+} from "@/api/models";
+import { getSpeakers } from "@/api/speakers";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Models Dashboard | VoicePrint",
+  title: "Models Dashboard | Voiceprint",
   description: "Manage speaker identification models",
 };
 
 export default async function ModelsPage() {
   const models = await getModels();
-  const voices = await getVoices();
+  const speakers = await getSpeakers();
 
   return (
     <ModelsDashboard
       models={models}
-      voices={voices}
+      speakers={speakers}
       createModel={createModel}
       loadModel={loadModel}
-      identifyVoice={identifyVoice}
+      identifySpeaker={identifySpeaker}
     />
   );
 }
