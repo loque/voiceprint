@@ -24,7 +24,8 @@
         "ms-python.python",
         "ms-python.autopep8",
         "esbenp.prettier-vscode",
-        "dbaeumer.vscode-eslint"
+        "dbaeumer.vscode-eslint",
+        "tamasfe.even-better-toml"
       ]
     }
   },

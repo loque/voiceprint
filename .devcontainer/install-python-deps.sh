@@ -1,12 +1,13 @@
 #!/bin/bash
 set -e
 
-# Install voiceprint package in development mode
-# pip install -r ./voiceprint/requirements_cpu.txt
-# pip install -r ./voiceprint/requirements.txt
+pip install --upgrade pip
 
-# Install REST API requirements
-pip install -r ./rest_api/requirements.txt
+# First install the voiceprint package in editable mode with CPU extras
+pip install --extra-index-url https://download.pytorch.org/whl/cpu -e ./voiceprint[cpu]
+
+# Install rest_api requirements
+pip install --extra-index-url https://download.pytorch.org/whl/cpu -r ./rest_api/requirements.txt
 
 # Install wyoming_voiceprint requirements
-pip install -r ./wyoming_voiceprint/requirements.txt
+pip install --extra-index-url https://download.pytorch.org/whl/cpu -r ./wyoming_voiceprint/requirements.txt

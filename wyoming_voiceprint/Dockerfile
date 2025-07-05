@@ -21,11 +21,11 @@ COPY ../voiceprint /app/voiceprint
 # Install the voiceprint package with CPU dependencies
 RUN pip install --extra-index-url https://download.pytorch.org/whl/cpu --no-cache-dir -e ./voiceprint[cpu]
 
-# Copy rest_api requirements and install them
+# Copy wyoming_voiceprint requirements and install them
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest_api application code
+# Copy the wyoming_voiceprint application code
 COPY . .
 
 # Set permissions for the non-root user
@@ -34,6 +34,8 @@ RUN chown -R appuser:appuser /app
 # Switch to the non-root user
 USER appuser
 
-EXPOSE 8000
+# Expose the default Wyoming protocol port
+EXPOSE 10700
 
-CMD ["uvicorn", "api:api", "--host", "0.0.0.0", "--port", "8000"]
+# Command to run the Wyoming voiceprint service
+CMD ["python", "-m", "wyoming_voiceprint"]
