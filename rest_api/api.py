@@ -11,9 +11,9 @@ _LOGGER = get_logger("rest_api")
 
 voiceprint = Voiceprint(model)
 
-app = FastAPI()
+api = FastAPI()
 
-app.add_middleware(
+api.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
@@ -21,13 +21,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/speakers")
+@api.get("/speakers")
 async def get_speakers():
     speakers = voiceprint.get_enrolled_speakers()
     _LOGGER.info("Enrolled speakers: %s", speakers)
     return {"speakers": speakers}
 
-@app.post("/speakers/enroll")
+@api.post("/speakers/enroll")
 async def enroll_speaker(
     name: str = Form(...),
     audio_files: list[UploadFile] = File(...)
@@ -72,7 +72,7 @@ async def enroll_speaker(
             except Exception as cleanup_error:
                 _LOGGER.warning("Failed to cleanup temporary file %s: %s", temp_path, cleanup_error)
 
-@app.post("/speakers/identify")
+@api.post("/speakers/identify")
 async def identify_speaker(audio_file: UploadFile = File(...)):
     """Identify a speaker from an audio sample."""
     if not audio_file or not audio_file.filename:
@@ -110,7 +110,7 @@ async def identify_speaker(audio_file: UploadFile = File(...)):
             except Exception as cleanup_error:
                 _LOGGER.warning("Failed to cleanup temporary file %s: %s", temp_path, cleanup_error)
 
-@app.delete("/speakers/{speaker_name}")
+@api.delete("/speakers/{speaker_name}")
 async def delete_speakers(speaker_name: str):
     """Delete selected speakers."""
     if not speaker_name:

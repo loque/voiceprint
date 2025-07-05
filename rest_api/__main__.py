@@ -1,6 +1,6 @@
 # filepath: /workspaces/voiceprint/rest_api/__main__.py
 import uvicorn
-from .app import app
+from .api import api
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(api, host="0.0.0.0", port=8000)
