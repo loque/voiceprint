@@ -1,0 +1,43 @@
+{
+  "name": "Voiceprint DE",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bullseye",
+  "runArgs": [
+    "--name",
+    "VoiceprintDE"
+  ],
+  "features": {
+    "ghcr.io/devcontainers-extra/features/ffmpeg-apt-get:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts",
+      "nodeGypDependencies": true
+    },
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "eamodio.gitlens",
+        "ms-python.python",
+        "ms-python.autopep8",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/install-python-deps.sh && bash .devcontainer/install-node-deps.sh",
+  "portsAttributes": {
+    "5173": {
+      "label": "Web UI"
+    },
+    "6006": {
+      "label": "Web UI Stories"
+    },
+    "8000": {
+      "label": "REST API"
+    }
+  }
+}
