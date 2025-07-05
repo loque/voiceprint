@@ -13,12 +13,12 @@ _LOGGER = get_logger("voiceprint")
 
 # Get the absolute path to the model directory relative to this file
 _current_dir = os.path.dirname(os.path.abspath(__file__))
-_model_path = os.path.join(_current_dir, "models", "spkrec-ecapa-voxceleb")
-_data_path = os.path.join(_current_dir, "data")
+model_path = os.path.join(_current_dir, "models", "spkrec-ecapa-voxceleb")
+data_path = os.path.join(_current_dir, "data")
 
 model = SpeakerRecognition.from_hparams(
-    source=_model_path,
-    savedir=_model_path,
+    source=model_path,
+    savedir=model_path,
     run_opts={"device":"cpu"},
 )
 
@@ -29,7 +29,7 @@ class Voiceprint:
         self.model = model
         # name ➔ embedding (numpy array)
         self.db: dict[str, np.ndarray] = {}
-        self._db_path = db_path or os.path.join(_data_path, "speakers.db")
+        self._db_path = db_path or os.path.join(data_path, "speakers.db")
         if os.path.isfile(self._db_path):
             _LOGGER.info("Loading existing speaker database from %s", self._db_path)
             self._load_speakers()
