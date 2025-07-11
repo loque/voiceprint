@@ -4,11 +4,11 @@ services:
       context: .
       dockerfile: rest_api/Dockerfile
     ports:
-      - "8000:8000"
+      - "9797:9797"
     environment:
-      - SPEAKERS_PATH=/app/data/speakers
+      - LIBS_PATH=/app/voiceprint/libs
     volumes:
-      - ./data/speakers:/app/data/speakers
+      - libs_path:/app/voiceprint/libs
     networks:
       - voiceprint
 
@@ -19,7 +19,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://rest_api:9797
     depends_on:
       - rest_api
     networks:
@@ -30,4 +30,4 @@ networks:
     driver: bridge
 
 volumes:
-  speakers_data:
+  libs_path:

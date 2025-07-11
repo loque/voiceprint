@@ -1,3 +1,15 @@
+web_ui/
+wyoming_voiceprint/
+
+# Exclude other unnecessary files and directories
+.git/
+.gitignore
+README.md
+*.md
+.vscode/
+.devcontainer/
+.github/
+
 # Exclude Python cache and build artifacts
 __pycache__/
 *.pyc
@@ -29,5 +41,3 @@ wheels/
 # Exclude OS files
 .DS_Store
 Thumbs.db
-
-!.gitkeep
