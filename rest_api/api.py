@@ -222,7 +222,7 @@ async def enroll_speaker(
 class IdentifyResponse(BaseModel):
     speaker: SpeakerOut | None
 
-@api.post("/libraries/{library_id}/identify-speaker", response_model=IdentifyResponse)
+@api.post("/libraries/{library_id}/identify", response_model=IdentifyResponse)
 async def identify_speaker(library_id: LibraryId, audio_file: UploadFile):
     """Identify a speaker from an audio sample."""
     library = get_voiceprint().get_loaded_library()

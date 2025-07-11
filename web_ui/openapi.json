@@ -18,7 +18,7 @@
         "title": "Body_enroll_speaker_libraries__library_id__speakers_post",
         "type": "object"
       },
-      "Body_identify_speaker_libraries__library_id__identify_speaker_post": {
+      "Body_identify_speaker_libraries__library_id__identify_post": {
         "properties": {
           "audio_file": {
             "format": "binary",
@@ -29,7 +29,7 @@
         "required": [
           "audio_file"
         ],
-        "title": "Body_identify_speaker_libraries__library_id__identify_speaker_post",
+        "title": "Body_identify_speaker_libraries__library_id__identify_post",
         "type": "object"
       },
       "Body_import_library_libraries_import_post": {
@@ -347,10 +347,10 @@
         "summary": "Load Library"
       }
     },
-    "/libraries/{library_id}/identify-speaker": {
+    "/libraries/{library_id}/identify": {
       "post": {
         "description": "Identify a speaker from an audio sample.",
-        "operationId": "identify_speaker_libraries__library_id__identify_speaker_post",
+        "operationId": "identify_speaker_libraries__library_id__identify_post",
         "parameters": [
           {
             "in": "path",
@@ -366,7 +366,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_identify_speaker_libraries__library_id__identify_speaker_post"
+                "$ref": "#/components/schemas/Body_identify_speaker_libraries__library_id__identify_post"
               }
             }
           },

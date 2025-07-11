@@ -1,6 +1,10 @@
-import axios from "axios";
+import createFetchClient from "openapi-fetch";
+import createClient from "openapi-react-query";
+import type { paths } from "./api.d";
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000",
-  headers: { "Content-Type": "application/json" },
+const fetchClient = createFetchClient<paths>({
+  baseUrl: import.meta.env.VITE_API_BASE_URL || "http://localhost:9797",
 });
+
+export const Api = createClient(fetchClient);
+export type Api = typeof Api;

@@ -2,11 +2,13 @@
 
 # Generate OpenAPI JSON schema
 openapi:
-	python rest_api/openapi.py --pretty -o openapi.json
+	python rest_api/openapi.py --pretty -o web_ui/openapi.json
+	cd web_ui && npm run generate:openapi
+	@echo "✅ OpenAPI schema generated and TypeScript types updated successfully!"
 
 # Clean generated files
 clean:
-	rm -f openapi.json
+	rm -f web_ui/openapi.json
 
 # Show available targets
 help:
