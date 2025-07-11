@@ -25,7 +25,16 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
-voiceprint = Voiceprint(libs_path=os.environ["LIBS_PATH"])
+# Global variable to hold the Voiceprint instance
+voiceprint = None
+
+def get_voiceprint() -> Voiceprint:
+    """Get the Voiceprint instance, initializing it if necessary."""
+    global voiceprint
+    if voiceprint is None:
+        libs_path = os.environ.get("LIBS_PATH", "/tmp/voiceprint_libs")
+        voiceprint = Voiceprint(libs_path=libs_path)
+    return voiceprint
 
 class SpeakerIn(BaseModel):
     """API model for speaker input."""
@@ -71,7 +80,7 @@ class LibraryOut(BaseModel):
 @api.get("/libraries", response_model=List[LibraryOut])
 async def list_libraries():
     """Get a list of all available libraries."""
-    libraries = voiceprint.list_libraries()
+    libraries = get_voiceprint().list_libraries()
     return [lib.to_dict() for lib in libraries]
 
 @api.post("/libraries", response_model=LibraryOut)
@@ -81,7 +90,7 @@ async def create_library(name: str):
         raise BadRequestError("Please enter a valid library name.")
     
     try:
-        library = voiceprint.create_library(name)
+        library = get_voiceprint().create_library(name)
         return library.to_dict()
     except Exception as e:
         _LOGGER.error("Error creating library: %s", str(e))
@@ -111,7 +120,7 @@ async def import_library(lib_file: UploadFile):
             temp_file.write(content)
         
         # Import the library using the temporary file path
-        library = voiceprint.import_library(temp_path)
+        library = get_voiceprint().import_library(temp_path)
         return library.to_dict()
         
     except Exception as e:
@@ -135,7 +144,7 @@ async def load_library(library_id: LibraryId):
     _LOGGER.info("Loading library with ID: %s", library_id)
     
     try:
-        library = voiceprint.load_library(library_id)
+        library = get_voiceprint().load_library(library_id)
         return library.to_dict()
     except FileNotFoundError:
         raise NotFoundError(f"Library '{library_id}' not found.")
@@ -152,7 +161,7 @@ async def delete_library(library_id: LibraryId) -> str:
     _LOGGER.info("Deleting library with ID: %s", library_id)
     
     try:
-        voiceprint.delete_library(library_id)
+        get_voiceprint().delete_library(library_id)
         return "ok"
     except Exception as e:
         _LOGGER.error("Error deleting library: %s", str(e))
@@ -165,7 +174,7 @@ async def enroll_speaker(
     audio_files: list[UploadFile]
 ):
     """Enroll a new speaker with their audio samples."""
-    library = voiceprint.get_loaded_library()
+    library = get_voiceprint().get_loaded_library()
     if not library or not library.id:
         raise NotFoundError("No library loaded. Please load or create a library first.")
     
@@ -195,7 +204,7 @@ async def enroll_speaker(
                 temp_file.write(content)
         
         # Enroll the speaker using the temporary file paths
-        return voiceprint.enroll_speaker(name, temp_file_paths)
+        return get_voiceprint().enroll_speaker(name, temp_file_paths)
 
     except Exception as e:
         _LOGGER.error("Error enrolling speaker: %s", str(e))
@@ -216,7 +225,7 @@ class IdentifyResponse(BaseModel):
 @api.post("/libraries/{library_id}/identify-speaker", response_model=IdentifyResponse)
 async def identify_speaker(library_id: LibraryId, audio_file: UploadFile):
     """Identify a speaker from an audio sample."""
-    library = voiceprint.get_loaded_library()
+    library = get_voiceprint().get_loaded_library()
     if not library or not library.id:
         raise NotFoundError("No library loaded. Please load or create a library first.")
     
@@ -240,7 +249,7 @@ async def identify_speaker(library_id: LibraryId, audio_file: UploadFile):
             temp_file.write(content)
         
         # Identify the speaker using the temporary file path
-        identified_speaker = voiceprint.identify_speaker(temp_path)
+        identified_speaker = get_voiceprint().identify_speaker(temp_path)
         return {"speaker": identified_speaker}
 
     except Exception as e:
@@ -258,7 +267,7 @@ async def identify_speaker(library_id: LibraryId, audio_file: UploadFile):
 @api.delete("/libraries/{library_id}/speakers/{speaker_id}")
 async def delete_speaker(library_id: LibraryId, speaker_id: SpeakerId) -> str:
     """Delete a speaker by ID."""
-    library = voiceprint.get_loaded_library()
+    library = get_voiceprint().get_loaded_library()
     if not library or not library.id:
         raise NotFoundError("No library loaded. Please load or create a library first.")
     
@@ -269,7 +278,7 @@ async def delete_speaker(library_id: LibraryId, speaker_id: SpeakerId) -> str:
         raise BadRequestError("No speaker selected for deletion.")
 
     try:
-        if not voiceprint.unenroll_speaker(speaker_id):
+        if not get_voiceprint().unenroll_speaker(speaker_id):
             raise NotFoundError("Speaker not found.")
         return "ok"
     except Exception as e:
