@@ -1,12 +1,13 @@
-import { TabsContent } from "@/components/ui/tabs";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { AudioRecorder } from "@/components/recorder/audio-recorder-context";
-import { useEnrollSpeaker, type SpeakerName } from "@/lib/api/hooks";
-import { toast } from "sonner";
 import { VoiceSampleRecorder } from "@/components/ui/voice-sample-recorder";
+import { Header, HeaderTitle } from "@/components/ui/header";
+import { Body, BodySection } from "@/components/ui/body";
+import { Api, type Library } from "@/lib/api/api";
 
 export interface VoiceSample {
   id: number;
@@ -15,8 +16,23 @@ export interface VoiceSample {
   audioBlob: Blob | null;
 }
 
-export function EnrollSpeakerTab() {
-  const enroll = useEnrollSpeaker();
+export function EnrollSpeaker({ library }: { library: Library | null }) {
+  const { mutate: enroll } = Api.useMutation(
+    "post",
+    "/libraries/{library_id}/speakers",
+    {
+      onSuccess: () => {
+        // Reset form and recordings on successful enrollment
+        setSpeakerName("");
+        resetAudioSamples();
+        toast.success("Speaker enrolled successfully!");
+      },
+      onError: (error) => {
+        console.error("Failed to enroll speaker:", error);
+        toast.error("Failed to enroll speaker. Please try again.");
+      },
+    }
+  );
   const [speakerName, setSpeakerName] = useState("");
   const [voiceSamples, setVoiceSamples] = useState<VoiceSample[]>([
     {
@@ -71,6 +87,11 @@ export function EnrollSpeakerTab() {
   }
 
   function handleSubmit() {
+    if (!library) {
+      toast.error("No library selected. Please select a library first.");
+      return;
+    }
+
     const trimmedName = speakerName.trim();
     if (!trimmedName) {
       toast.error("Please enter a valid speaker name.");
@@ -95,78 +116,61 @@ export function EnrollSpeakerTab() {
       });
     });
 
-    enroll.mutate(
-      {
-        name: trimmedName as SpeakerName,
-        files,
+    enroll({
+      params: {
+        path: { library_id: library.id },
+        query: { name: trimmedName },
       },
-      {
-        onSuccess: () => {
-          // Reset form and recordings on successful enrollment
-          setSpeakerName("");
-          resetAudioSamples();
-          toast.success("Speaker enrolled successfully!");
-        },
-        onError: (error) => {
-          console.error("Failed to enroll speaker:", error);
-          toast.error("Failed to enroll speaker. Please try again.");
-        },
-      }
-    );
+      body: {
+        // TODO: find a better way to do this
+        audio_files: files as unknown as string[],
+      },
+    });
   }
 
   return (
-    <TabsContent value="enroll" className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold mb-4">
-          Record audio samples to enroll a speaker
-        </h2>
+    <>
+      <Header>
+        <HeaderTitle>Record audio samples to enroll a speaker</HeaderTitle>
+      </Header>
+      <Body>
+        <BodySection>
+          <Label htmlFor="speakerName">Speaker Name</Label>
+          <Input
+            id="speakerName"
+            type="text"
+            placeholder="Enter speaker's name..."
+            className="bg-gray-800 border-gray-700 text-white placeholder-gray-400 mt-2"
+            value={speakerName}
+            onChange={(e) => setSpeakerName(e.target.value)}
+            required
+          />
+        </BodySection>
 
-        <div className="space-y-4 mb-6">
-          <div>
-            <Label htmlFor="speakerName" className="text-gray-300">
-              Speaker Name
-            </Label>
-            <Input
-              id="speakerName"
-              type="text"
-              placeholder="Enter speaker's name..."
-              className="bg-gray-800 border-gray-700 text-white placeholder-gray-400 mt-2"
-              value={speakerName}
-              onChange={(e) => setSpeakerName(e.target.value)}
-              required
-            />
-          </div>
-        </div>
+        {voiceSamples.map((sample, index) => (
+          <BodySection key={sample.id} className="gap-2">
+            <Label>Suggested Script {index + 1}</Label>
+            <p className="italic text-sm">{sample.script}</p>
+            <AudioRecorder>
+              <VoiceSampleRecorder
+                onChange={(audioBlob) => setAudioSample(sample.id, audioBlob)}
+                className="w-full"
+              />
+            </AudioRecorder>
+          </BodySection>
+        ))}
 
-        <div className="space-y-6">
-          {voiceSamples.map((sample, index) => (
-            <div key={sample.id} className="space-y-3">
-              <div className="text-gray-300">
-                <span className="font-semibold">
-                  Suggested Script {index + 1}:
-                </span>{" "}
-                <span className="italic">'{sample.script}'</span>
-              </div>
-              <AudioRecorder>
-                <VoiceSampleRecorder
-                  onChange={(audioBlob) => setAudioSample(sample.id, audioBlob)}
-                  className="w-full"
-                />
-              </AudioRecorder>
-            </div>
-          ))}
-        </div>
-
-        <Button
-          type="button"
-          onClick={handleSubmit}
-          className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-8 py-3"
-          size="lg"
-        >
-          Enroll Speaker
-        </Button>
-      </div>
-    </TabsContent>
+        <BodySection>
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-8 py-3"
+            size="lg"
+          >
+            Enroll Speaker
+          </Button>
+        </BodySection>
+      </Body>
+    </>
   );
 }
