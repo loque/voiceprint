@@ -5,6 +5,7 @@ import { Api, type Library } from "./lib/api/api";
 import { Layout } from "./app/Layout";
 import { EnrollSpeaker } from "./app/EnrollSpeaker";
 import { IdentifySpeaker } from "./app/IdentifySpeaker";
+import { Speakers } from "./app/Speakers";
 
 export function App() {
   const navigate = useNavigate();
@@ -67,6 +68,7 @@ export function App() {
             path="/identify-speaker"
             element={<IdentifySpeaker library={library} />}
           />
+          <Route path="/speakers" element={<Speakers library={library} />} />
         </Route>
       </Routes>
     </div>

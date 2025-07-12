@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "@/components/ui/sidebar";
-import { AudioLines, CirclePlus, Fingerprint, Settings } from "lucide-react";
+import { AudioLines, CirclePlus, Fingerprint, Users } from "lucide-react";
 import { NavLink, Outlet } from "react-router";
 
 export function Layout() {
@@ -65,10 +65,10 @@ export function Layout() {
                   </NavLink>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <NavLink to="/settings">
+                  <NavLink to="/speakers">
                     {({ isActive }) => (
-                      <SidebarMenuButton isActive={isActive} tooltip="Settings">
-                        <Settings /> Settings
+                      <SidebarMenuButton isActive={isActive} tooltip="Speakers">
+                        <Users /> Speakers
                       </SidebarMenuButton>
                     )}
                   </NavLink>
