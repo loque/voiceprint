@@ -133,6 +133,7 @@ export function EnrollSpeaker({ library }: { library: Library | null }) {
       <Header>
         <HeaderTitle>Record audio samples to enroll a speaker</HeaderTitle>
       </Header>
+
       <Body>
         <BodySection>
           <Label htmlFor="speakerName">Speaker Name</Label>

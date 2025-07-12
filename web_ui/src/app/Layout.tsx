@@ -14,7 +14,6 @@ import { AudioLines, CirclePlus, Fingerprint, Settings } from "lucide-react";
 import { NavLink, Outlet } from "react-router";
 
 export function Layout() {
-  console.debug(">>> Layout");
   return (
     <SidebarProvider
       style={

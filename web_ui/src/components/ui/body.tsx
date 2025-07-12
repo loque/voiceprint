@@ -4,7 +4,7 @@ import type { PropsWithChildren } from "react";
 export function Body({ children }: PropsWithChildren) {
   return (
     <div
-      className="flex flex-col flex-1 self-center py-8 gap-8 max-w-3xl"
+      className="flex flex-col flex-1 self-center py-8 gap-8 max-w-3xl w-full"
       data-slot="body"
     >
       {children}
