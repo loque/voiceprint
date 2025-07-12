@@ -28,6 +28,9 @@ export class WaveformCanvas {
       );
     }
 
+    // Initialize canvas size immediately
+    this.updateCanvasSize();
+
     let currentState: AudioRecorderState | undefined;
 
     // Resize the canvas when its parent element changes size
@@ -83,8 +86,11 @@ export class WaveformCanvas {
 
   protected render(state: AudioRecorderState): void {
     if (!this.rect) {
-      console.error("WaveformCanvas: Canvas size not set.");
-      return;
+      this.updateCanvasSize();
+      if (!this.rect) {
+        console.error("WaveformCanvas: Canvas size not set.");
+        return;
+      }
     }
     this.ctx.clearRect(0, 0, this.rect.width, this.rect.height);
 
