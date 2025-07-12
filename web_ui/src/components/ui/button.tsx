@@ -55,8 +55,7 @@ const buttonVariants = cva(
       {
         variant: "outline",
         color: "primary",
-        class:
-          "border-primary text-primary hover:bg-primary hover:text-primary-foreground",
+        class: "border-primary text-primary hover:bg-primary",
       },
       {
         variant: "outline",

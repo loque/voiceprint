@@ -18,7 +18,7 @@ export function VoiceSampleRecorder({
   return (
     <div
       className={cn(
-        "w-full flex flex-col bg-slate-800 border border-slate-600 rounded",
+        "w-full flex flex-col dark:bg-input/30 border border-input rounded",
         className
       )}
     >
