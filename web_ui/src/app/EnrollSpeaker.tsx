@@ -122,7 +122,7 @@ export function EnrollSpeaker() {
   return (
     <>
       <Header>
-        <HeaderTitle>Record audio samples to enroll a speaker</HeaderTitle>
+        <HeaderTitle>Enroll a speaker</HeaderTitle>
       </Header>
 
       <Body>

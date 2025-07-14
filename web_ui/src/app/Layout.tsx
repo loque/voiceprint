@@ -132,16 +132,16 @@ function LibraryMenu({ library }: { library: Library }) {
               )}
             </NavLink>
           </SidebarMenuItem>
-          {/* Manage Speakers */}
+          {/* Options */}
           <SidebarMenuItem>
-            <NavLink to={`library/${library.id}/speakers`}>
+            <NavLink to={`library/${library.id}/options`}>
               {({ isActive }) => (
                 <SidebarMenuButton
                   isActive={isActive}
-                  tooltip="Speakers"
+                  tooltip="Options"
                   className="cursor-pointer"
                 >
-                  <Users /> Speakers
+                  <Users /> Options
                 </SidebarMenuButton>
               )}
             </NavLink>

@@ -46,7 +46,7 @@ export function IdentifySpeaker() {
   return (
     <>
       <Header>
-        <HeaderTitle>Record audio to identify who's speaking</HeaderTitle>
+        <HeaderTitle>Identify a speaker</HeaderTitle>
       </Header>
 
       <Body>

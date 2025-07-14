@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router";
 import { Layout } from "./app/Layout";
 import { EnrollSpeaker } from "./app/EnrollSpeaker";
 import { IdentifySpeaker } from "./app/IdentifySpeaker";
-import { Speakers } from "./app/Speakers";
+import { Options } from "./app/Options";
 import { VoiceprintProvider } from "./lib/state";
 
 export function App() {
@@ -18,7 +18,7 @@ export function App() {
             <Route index element={<div>Select an action</div>} />
             <Route path="identify-speaker" element={<IdentifySpeaker />} />
             <Route path="enroll-speaker" element={<EnrollSpeaker />} />
-            <Route path="speakers" element={<Speakers />} />
+            <Route path="options" element={<Options />} />
           </Route>
         </Route>
       </Routes>
