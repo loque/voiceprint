@@ -309,6 +309,44 @@
         "summary": "Delete Library"
       }
     },
+    "/libraries/{library_id}/download": {
+      "get": {
+        "description": "Download a library by ID.",
+        "operationId": "download_library_libraries__library_id__download_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "library_id",
+            "required": true,
+            "schema": {
+              "title": "Library Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download Library"
+      }
+    },
     "/libraries/{library_id}/identify": {
       "post": {
         "description": "Identify a speaker from an audio sample.",
