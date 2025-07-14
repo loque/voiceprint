@@ -27,7 +27,13 @@ class WyomingEventHandler(AsyncEventHandler):
         self.is_recording = False
         
         _LOGGER.info("Initialized voiceprint handler")
-        _LOGGER.info("Enrolled speakers: %s", self.voiceprint.get_enrolled_speakers())
+        library = self.voiceprint.get_loaded_library()
+        if library:
+            speakers = list(library["speakers"].values())
+            speaker_names = [speaker["name"] for speaker in speakers]
+            _LOGGER.info("Enrolled speakers: %s", speaker_names)
+        else:
+            _LOGGER.info("No library loaded")
 
     async def handle_event(self, event: Event) -> bool:
         """Handle all Wyoming events."""
@@ -108,13 +114,13 @@ class WyomingEventHandler(AsyncEventHandler):
                     wav_file.writeframes(self.audio_buffer.getvalue())
                 
                 # Identify speaker using voiceprint
-                speaker_id = self.voiceprint.identify_speaker(temp_file.name)
+                speaker = self.voiceprint.identify_speaker(temp_file.name)
                 
                 # Clean up temporary file
                 import os
                 os.unlink(temp_file.name)
                 
-                return speaker_id
+                return speaker["name"] if speaker else None
                 
         except Exception as e:
             _LOGGER.error("Error identifying speaker: %s", e)

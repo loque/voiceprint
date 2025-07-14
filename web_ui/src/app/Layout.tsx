@@ -26,7 +26,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import type { Library } from "@/lib/api/api";
-import { useCreateLibrary } from "@/lib/state";
+import { useCreateLibrary } from "@/lib/state/use-create-library";
 import { useGetLibraries } from "@/lib/state/use-get-libraries";
 import {
   AudioLines,

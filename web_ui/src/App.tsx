@@ -3,7 +3,7 @@ import { Layout } from "./app/Layout";
 import { EnrollSpeaker } from "./app/EnrollSpeaker";
 import { IdentifySpeaker } from "./app/IdentifySpeaker";
 import { Options } from "./app/Options";
-import { VoiceprintProvider } from "./lib/state";
+import { VoiceprintProvider } from "./lib/state/voiceprint-provider";
 
 export function App() {
   return (
