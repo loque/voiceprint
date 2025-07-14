@@ -57,11 +57,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Load Library
-         * @description Load a library by ID.
-         */
-        post: operations["load_library_libraries__library_id__post"];
+        post?: never;
         /**
          * Delete Library
          * @description Delete a library by ID.
@@ -265,37 +261,6 @@ export interface operations {
                 "multipart/form-data": components["schemas"]["Body_import_library_libraries_import_post"];
             };
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LibraryOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    load_library_libraries__library_id__post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                library_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

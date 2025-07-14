@@ -307,44 +307,6 @@
           }
         },
         "summary": "Delete Library"
-      },
-      "post": {
-        "description": "Load a library by ID.",
-        "operationId": "load_library_libraries__library_id__post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "library_id",
-            "required": true,
-            "schema": {
-              "title": "Library Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LibraryOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Load Library"
       }
     },
     "/libraries/{library_id}/identify": {
