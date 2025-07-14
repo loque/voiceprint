@@ -68,16 +68,25 @@ class Voiceprint:
         lib_path = self._get_library_path(lib_id)
         return self._read_library_from_path(lib_path)
     
+    def _validate_library_loaded(self, expected_id: Optional[LibraryId] = None) -> Library:
+        """Ensure a library is loaded before performing operations."""
+        if self.library is None:
+            raise ValueError("No voices library loaded. Create or load a library first.")
+        
+        if expected_id is not None and self.library.id != expected_id:
+            raise ValueError(f"Expected library '{expected_id}' but '{self.library.id}' is loaded")
+        
+        return self.library
+    
     def _write_library(self) -> None:
         """Save the library to file."""
-        if self.library is None:
-            raise ValueError("No library loaded")
-        
-        lib_path = self._get_library_path(self.library.id)
-        
+        library = self._validate_library_loaded()
+
+        lib_path = self._get_library_path(library.id)
+
         try:
             with open(lib_path, "wb") as f:
-                pickle.dump(self.library.to_dict(), f)
+                pickle.dump(library.to_dict(), f)
             _LOGGER.info(f"Saved library to: {lib_path}")
         except Exception as e:
             raise ValueError(f"Failed to save library: {e}")
@@ -174,8 +183,7 @@ class Voiceprint:
 
     def enroll_speaker(self, name: str, audiofiles: list[str]) -> Speaker:
         """Enroll a speaker in the voices library."""
-        if self.library is None:
-            raise ValueError("No voices library loaded. Create or load a library first.")
+        library = self._validate_library_loaded()
         
         if not name:
             raise ValueError("Speaker name cannot be empty")
@@ -201,7 +209,7 @@ class Voiceprint:
         mean_embedding = np.mean(embeddings, axis=0)
         
         # Create a speaker in library
-        speaker = self.library.add_speaker(name, mean_embedding)
+        speaker = library.add_speaker(name, mean_embedding)
         self._write_library()
         
         _LOGGER.info(f"Enrolled speaker '{name}' with ID: {speaker.id}")
@@ -209,10 +217,9 @@ class Voiceprint:
 
     def unenroll_speaker(self, speaker_id: SpeakerId) -> bool:
         """Remove a speaker from the voices library."""
-        if self.library is None:
-            return False
+        library = self._validate_library_loaded()
         
-        if self.library.remove_speaker(speaker_id):
+        if library.remove_speaker(speaker_id):
             _LOGGER.info(f"Unenrolled speaker by ID: {speaker_id}")
             self._write_library()
             return True
@@ -220,7 +227,9 @@ class Voiceprint:
 
     def identify_speaker(self, audiofile: str) -> Optional[Speaker]:
         """Identify a speaker from an audio file."""
-        if self.library is None or not self.library.speakers:
+        library = self._validate_library_loaded()
+        
+        if not library.speakers:
             return None
         
         if not os.path.exists(audiofile):
@@ -234,7 +243,7 @@ class Voiceprint:
         best_speaker: Optional[Speaker] = None
         best_similarity = -1
         
-        for speaker in self.library.speakers:
+        for speaker in library.speakers:
             similarity = np.dot(emb, speaker.embeddings) / (
                 np.linalg.norm(emb) * np.linalg.norm(speaker.embeddings)
             )
