@@ -1,5 +1,4 @@
-export function audioBufferToWav(buffer: AudioBuffer): Blob {
-  // ... your existing audioBufferToWav implementation
+function audioBufferToWav(buffer: AudioBuffer): Blob {
   const length = buffer.length;
   const sampleRate = buffer.sampleRate;
   const arrayBuffer = new ArrayBuffer(44 + length * 2);
@@ -28,7 +27,8 @@ export function audioBufferToWav(buffer: AudioBuffer): Blob {
 
   let offset = 44;
   for (let i = 0; i < length; i++) {
-    const sample = Math.max(-1, Math.min(1, channelData[i]));
+    const value = channelData[i] ?? 0;
+    const sample = Math.max(-1, Math.min(1, value));
     view.setInt16(offset, sample * 0x7fff, true);
     offset += 2;
   }
@@ -51,17 +51,25 @@ export async function convertToWav(audioBlob: Blob): Promise<Blob> {
   return audioBufferToWav(renderedBuffer);
 }
 
-export function downloadAudio(audioBlob: Blob | null | undefined): void {
-  if (!audioBlob) return;
-
-  const url = URL.createObjectURL(audioBlob);
+export function downloadFile(blob: Blob | string, filename: string): void {
+  const url = typeof blob === "string" ? blob : URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `recording-${Date.now()}.wav`;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+
+  // Only revoke URL if we created it from a Blob
+  if (typeof blob !== "string") {
+    URL.revokeObjectURL(url);
+  }
+}
+
+export function downloadAudio(audioBlob: Blob | null | undefined): void {
+  if (!audioBlob) return;
+
+  downloadFile(audioBlob, `recording-${Date.now()}.wav`);
 }
 
 export function secondsToTime(seconds: number): string {

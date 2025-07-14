@@ -1,3 +1,4 @@
+import { downloadFile } from "@/components/recorder/helpers";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,6 +16,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
+  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
@@ -29,6 +31,7 @@ import type { Library } from "@/lib/api/api";
 import { useCreateLibrary } from "@/lib/state/use-create-library";
 import { useGetLibraries } from "@/lib/state/use-get-libraries";
 import {
+  ArrowDownToLine,
   AudioLines,
   CirclePlus,
   Fingerprint,
@@ -102,6 +105,17 @@ function LibraryMenu({ library }: { library: Library }) {
       <SidebarGroupLabel className="uppercase">
         {library.name}
       </SidebarGroupLabel>
+      <SidebarGroupAction
+        title="Download Library"
+        onClick={() =>
+          downloadFile(
+            `/files/libraries/${library.id}.pkl`,
+            `${library.id}.pkl`
+          )
+        }
+      >
+        <ArrowDownToLine />
+      </SidebarGroupAction>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           {/* Identify Speaker */}

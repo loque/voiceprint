@@ -5,9 +5,9 @@ import {
   Square,
   Play,
   Trash2,
-  Download,
   Pause,
   RotateCcw,
+  ArrowDownToLine,
 } from "lucide-react";
 import {
   useAudioRecorder,
@@ -193,7 +193,7 @@ export function RecordingDownloadButton({ className, ...props }: ButtonProps) {
       className={cn("rounded-full", className)}
       {...props}
     >
-      <Download />
+      <ArrowDownToLine />
     </Button>
   );
 }
