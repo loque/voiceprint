@@ -9,6 +9,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { CirclePlus, Trash2 } from "lucide-react";
 import { type Speaker } from "@/lib/api/api";
@@ -21,39 +23,51 @@ import {
 } from "@/components/ui/body";
 import { useCurrentLibrary } from "@/lib/state/use-current-library";
 import { useDeleteSpeaker } from "@/lib/state/use-delete-speaker";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
+import { useDeleteLibrary } from "@/lib/state/use-delete-library";
 
 export function Options() {
   const library = useCurrentLibrary();
   const speakers = library?.speakers || [];
+
   const { deleteSpeaker } = useDeleteSpeaker();
-
   const [speakerToDelete, setSpeakerToDelete] = useState<Speaker | null>(null);
-
-  const handleDeleteClick = (speaker: Speaker) => {
+  function handleDeleteSpeaker(speaker: Speaker) {
     setSpeakerToDelete(speaker);
-  };
-
-  const handleConfirmDelete = () => {
+  }
+  function handleConfirmDelete() {
     if (!library || !speakerToDelete) return;
     deleteSpeaker(library.id, speakerToDelete.id, {
       onSuccess: () => {
         setSpeakerToDelete(null);
       },
     });
-  };
-
-  const handleCancelDelete = () => {
+  }
+  function handleCancelDeleteSpeaker() {
     setSpeakerToDelete(null);
-  };
+  }
 
-  const getInitials = (name: string) => {
+  function getInitials(name: string) {
     return name
       .split(" ")
       .map((word) => word.charAt(0).toUpperCase())
       .join("")
       .slice(0, 2);
-  };
+  }
+
+  const navigate = useNavigate();
+
+  const { deleteLibrary } = useDeleteLibrary();
+  function handleConfirmDeleteLibrary() {
+    if (!library) return;
+    deleteLibrary(library.id, {
+      onSuccess: () => {
+        navigate("/", {
+          replace: true,
+        });
+      },
+    });
+  }
 
   return (
     <>
@@ -104,9 +118,9 @@ export function Options() {
                           <Button
                             variant="ghost"
                             color="destructive"
-                            onClick={() => handleDeleteClick(speaker)}
+                            onClick={() => handleDeleteSpeaker(speaker)}
                           >
-                            <Trash2 className="size-4" /> Delete
+                            <Trash2 /> Delete
                           </Button>
                         </div>
                       </div>
@@ -120,7 +134,53 @@ export function Options() {
 
         <BodySection>
           <BodySectionHeader>Danger Zone</BodySectionHeader>
-          <BodySectionContent></BodySectionContent>
+          <BodySectionContent>
+            <Card className="rounded-none first:rounded-t-xl last:rounded-b-xl border-none">
+              <CardContent className="flex space-between items-center">
+                <div className="max-w-sm">
+                  <h3 className="font-semibold mb-2">Delete Library</h3>
+                  <p className="text-sm text-gray-400 mb-4">
+                    This action will permanently delete the library and all its
+                    speakers. This cannot be undone.
+                  </p>
+                </div>
+                <div className="flex justify-end flex-1">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button color="destructive" variant="ghost">
+                        <Trash2 /> Delete
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Delete Library</DialogTitle>
+                        <DialogDescription>
+                          Are you sure you want to delete the library "
+                          {library?.name}"? This action cannot be undone.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button
+                            variant="outline"
+                            className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                          >
+                            Cancel
+                          </Button>
+                        </DialogClose>
+                        <Button
+                          onClick={handleConfirmDeleteLibrary}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Delete
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardContent>
+            </Card>
+          </BodySectionContent>
         </BodySection>
       </Body>
 
@@ -139,7 +199,7 @@ export function Options() {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={handleCancelDelete}
+              onClick={handleCancelDeleteSpeaker}
               className="border-gray-600 text-gray-300 hover:bg-gray-700"
             >
               Cancel
