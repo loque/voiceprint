@@ -7,7 +7,8 @@ import { AudioRecorder } from "@/components/recorder/audio-recorder-context";
 import { VoiceSampleRecorder } from "@/components/ui/voice-sample-recorder";
 import { Header, HeaderTitle } from "@/components/ui/header";
 import { Body, BodySection } from "@/components/ui/body";
-import { Api, type Library } from "@/lib/api/api";
+import { useLibrary } from "@/lib/state/use-library";
+import { useEnrollSpeaker } from "@/lib/state/use-enroll-speaker";
 
 export interface VoiceSample {
   id: number;
@@ -16,23 +17,10 @@ export interface VoiceSample {
   audioBlob: Blob | null;
 }
 
-export function EnrollSpeaker({ library }: { library: Library | null }) {
-  const { mutate: enroll } = Api.useMutation(
-    "post",
-    "/libraries/{library_id}/speakers",
-    {
-      onSuccess: () => {
-        // Reset form and recordings on successful enrollment
-        setSpeakerName("");
-        resetAudioSamples();
-        toast.success("Speaker enrolled successfully!");
-      },
-      onError: (error) => {
-        console.error("Failed to enroll speaker:", error);
-        toast.error("Failed to enroll speaker. Please try again.");
-      },
-    }
-  );
+export function EnrollSpeaker() {
+  const library = useLibrary();
+  const { enrollSpeaker, isPending } = useEnrollSpeaker();
+
   const [speakerName, setSpeakerName] = useState("");
   const [voiceSamples, setVoiceSamples] = useState<VoiceSample[]>([
     {
@@ -116,14 +104,17 @@ export function EnrollSpeaker({ library }: { library: Library | null }) {
       });
     });
 
-    enroll({
-      params: {
-        path: { library_id: library.id },
-        query: { name: trimmedName },
+    // TODO: find a better way to type files
+    enrollSpeaker(library.id, trimmedName, files as unknown as string[], {
+      onSuccess: () => {
+        // Reset form and recordings on successful enrollment
+        setSpeakerName("");
+        resetAudioSamples();
+        toast.success("Speaker enrolled successfully!");
       },
-      body: {
-        // TODO: find a better way to do this
-        audio_files: files as unknown as string[],
+      onError: (error) => {
+        console.error("Failed to enroll speaker:", error);
+        toast.error("Failed to enroll speaker. Please try again.");
       },
     });
   }
@@ -165,6 +156,7 @@ export function EnrollSpeaker({ library }: { library: Library | null }) {
           <Button
             type="button"
             onClick={handleSubmit}
+            disabled={isPending || !speakerName.trim()}
             className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-8 py-3"
             size="lg"
           >

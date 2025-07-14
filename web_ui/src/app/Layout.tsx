@@ -1,19 +1,159 @@
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
+  SidebarRail,
 } from "@/components/ui/sidebar";
-import { AudioLines, CirclePlus, Fingerprint, Users } from "lucide-react";
-import { NavLink, Outlet } from "react-router";
+import type { Library } from "@/lib/api/api";
+import { useCreateLibrary } from "@/lib/state";
+import { useLibraries } from "@/lib/state/use-libraries";
+import {
+  AudioLines,
+  CirclePlus,
+  Fingerprint,
+  PackagePlus,
+  Users,
+} from "lucide-react";
+import { useState } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router";
+
+function LibraryCreation() {
+  const { createLibrary } = useCreateLibrary();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+
+  function handleCreateLibrary(formData: FormData) {
+    const name = (formData.get("name") as string | null)?.trim();
+    if (!name) {
+      throw new Error("Library name is required");
+    }
+    createLibrary(name, {
+      onSuccess: (library) => {
+        setOpen(false);
+        navigate(`/library/${library.id}/identify-speaker`);
+      },
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <SidebarMenuButton asChild>
+          <Button variant="outline">
+            <PackagePlus />
+            Create Library
+          </Button>
+        </SidebarMenuButton>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Create a new library</DialogTitle>
+          <DialogDescription>
+            Create a new voice library to store speakers and their voiceprints.
+          </DialogDescription>
+        </DialogHeader>
+        <form action={handleCreateLibrary} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              placeholder="My Library"
+              required
+            />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button type="submit">Create</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function LibraryMenu({ library }: { library: Library }) {
+  return (
+    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+      <SidebarGroupLabel className="uppercase">
+        {library.name}
+      </SidebarGroupLabel>
+      <SidebarGroupContent className="flex flex-col gap-2">
+        <SidebarMenu>
+          {/* Identify Speaker */}
+          <SidebarMenuItem>
+            <NavLink to={`library/${library.id}/identify-speaker`}>
+              {({ isActive }) => (
+                <SidebarMenuButton
+                  isActive={isActive}
+                  tooltip="Identify speaker"
+                  className="cursor-pointer"
+                >
+                  <Fingerprint /> Identify speaker
+                </SidebarMenuButton>
+              )}
+            </NavLink>
+          </SidebarMenuItem>
+          {/* Enroll Speaker */}
+          <SidebarMenuItem>
+            <NavLink to={`library/${library.id}/enroll-speaker`}>
+              {({ isActive }) => (
+                <SidebarMenuButton
+                  isActive={isActive}
+                  tooltip="Enroll Speaker"
+                  className="cursor-pointer"
+                >
+                  <CirclePlus /> Enroll speaker
+                </SidebarMenuButton>
+              )}
+            </NavLink>
+          </SidebarMenuItem>
+          {/* Manage Speakers */}
+          <SidebarMenuItem>
+            <NavLink to={`library/${library.id}/speakers`}>
+              {({ isActive }) => (
+                <SidebarMenuButton
+                  isActive={isActive}
+                  tooltip="Speakers"
+                  className="cursor-pointer"
+                >
+                  <Users /> Speakers
+                </SidebarMenuButton>
+              )}
+            </NavLink>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+}
 
 export function Layout() {
+  const { libraries } = useLibraries();
   return (
     <SidebarProvider
       style={
@@ -38,45 +178,15 @@ export function Layout() {
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupContent className="flex flex-col gap-2">
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <NavLink to="/enroll-speaker">
-                    {({ isActive }) => (
-                      <SidebarMenuButton
-                        isActive={isActive}
-                        tooltip="Enroll Speaker"
-                      >
-                        <CirclePlus /> Enroll speaker
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <NavLink to="/identify-speaker">
-                    {({ isActive }) => (
-                      <SidebarMenuButton
-                        isActive={isActive}
-                        tooltip="Identify speaker"
-                      >
-                        <Fingerprint /> Identify speaker
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <NavLink to="/speakers">
-                    {({ isActive }) => (
-                      <SidebarMenuButton isActive={isActive} tooltip="Speakers">
-                        <Users /> Speakers
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
+            <SidebarMenu>
+              <LibraryCreation />
+            </SidebarMenu>
           </SidebarGroup>
+          {libraries.map((library) => (
+            <LibraryMenu key={library.id} library={library} />
+          ))}
         </SidebarContent>
+        <SidebarRail />
       </Sidebar>
       <SidebarInset>
         <Outlet />

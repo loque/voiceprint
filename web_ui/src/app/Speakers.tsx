@@ -9,13 +9,15 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog.bak";
 import { Trash2 } from "lucide-react";
-import { Api, type Library, type Speaker } from "@/lib/api/api";
+import { Api, type Speaker } from "@/lib/api/api";
 import { Header, HeaderTitle } from "@/components/ui/header";
 import { Body } from "@/components/ui/body";
+import { useLibrary } from "@/lib/state/use-library";
 
-export function Speakers({ library }: { library: Library | null }) {
+export function Speakers() {
+  const library = useLibrary();
   const speakers = library?.speakers || [];
 
   const deleteSpeaker = Api.useMutation(

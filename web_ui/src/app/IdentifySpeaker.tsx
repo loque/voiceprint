@@ -3,11 +3,13 @@ import { VoiceSampleRecorder } from "@/components/ui/voice-sample-recorder";
 import { useState } from "react";
 import { AudioRecorder } from "@/components/recorder/audio-recorder-context";
 import { toast } from "sonner";
-import { Api, type Library } from "@/lib/api/api";
+import { Api } from "@/lib/api/api";
 import { Header, HeaderTitle } from "@/components/ui/header";
 import { Body, BodySection } from "@/components/ui/body";
+import { useLibrary } from "@/lib/state/use-library";
 
-export function IdentifySpeaker({ library }: { library: Library | null }) {
+export function IdentifySpeaker() {
+  const library = useLibrary();
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
 
   const identify = Api.useMutation("post", "/libraries/{library_id}/identify", {
