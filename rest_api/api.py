@@ -4,7 +4,7 @@ from typing import List
 
 from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 import numpy as np
 from pydantic import BaseModel
 
@@ -35,6 +35,9 @@ def get_voiceprint() -> Voiceprint:
         libs_path = os.environ.get("LIBS_PATH", "/tmp/voiceprint_libs")
         voiceprint = Voiceprint(libs_path=libs_path)
     return voiceprint
+
+
+api.mount("/files/libraries", StaticFiles(directory=get_voiceprint().libs_path), name="library_files")
 
 class SpeakerIn(BaseModel):
     """API model for speaker input."""
@@ -135,23 +138,6 @@ async def import_library(lib_file: UploadFile):
             except Exception as cleanup_error:
                 _LOGGER.warning("Failed to cleanup temporary file %s: %s", temp_path, cleanup_error)
 
-@api.get("/libraries/{library_id}/file")
-async def download_library(library_id: LibraryId):
-    """Download a library by ID."""
-    get_library(library_id)
-        
-    # Get the library file path
-    library_file_path = get_voiceprint().get_library_path(library_id)
-    if not os.path.exists(library_file_path):
-        raise NotFoundError("Library file not found.")
-    
-    # Return the file as a download response
-    filename = f"{library_id}.pkl"
-    return FileResponse(
-        path=library_file_path,
-        filename=filename,
-        media_type="application/octet-stream"
-    )
 
 def get_library(library_id: LibraryId) -> Library:
     """Get a library by ID."""
