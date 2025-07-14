@@ -149,6 +149,10 @@ class Voiceprint:
 
     def load_library(self, lib_id: LibraryId) -> Library:
         """Load a library from file using library ID."""
+        if self.library and self.library.id == lib_id:
+            _LOGGER.info(f"Library {lib_id} is already loaded")
+            return self.library
+        
         try:
             self.library = self._read_library_by_id(lib_id)
             _LOGGER.info(f"Loaded voices library: {self.library.name} (ID: {self.library.id})")

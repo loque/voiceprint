@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from rest_api.errors import BadRequestError, InternalServerError, NotFoundError
 from utils import get_logger
-from voiceprint.library import LibraryDTO, LibraryId, SpeakerDTO, SpeakerId
+from voiceprint.library import Library, LibraryDTO, LibraryId, SpeakerDTO, SpeakerId
 from voiceprint.voiceprint import Voiceprint
 
 _LOGGER = get_logger("rest_api")
@@ -135,28 +135,20 @@ async def import_library(lib_file: UploadFile):
             except Exception as cleanup_error:
                 _LOGGER.warning("Failed to cleanup temporary file %s: %s", temp_path, cleanup_error)
 
-@api.post("/libraries/{library_id}", response_model=LibraryOut)
-async def load_library(library_id: LibraryId):
-    """Load a library by ID."""
+def get_library(library_id: LibraryId) -> Library:
+    """Get a library by ID."""
     if not library_id:
         raise BadRequestError("Library ID cannot be empty.")
-    
-    _LOGGER.info("Loading library with ID: %s", library_id)
-    
     try:
         library = get_voiceprint().load_library(library_id)
-        return library.to_dict()
-    except FileNotFoundError:
-        raise NotFoundError(f"Library '{library_id}' not found.")
-    except Exception as e:
-        _LOGGER.error("Error loading library: %s", str(e))
-        raise InternalServerError("Error loading library.")
+        return library
+    except:
+        raise NotFoundError("Library not found.")
 
 @api.delete("/libraries/{library_id}")
 async def delete_library(library_id: LibraryId) -> str:
     """Delete a library by ID."""
-    if not library_id:
-        raise BadRequestError("Library ID cannot be empty.")
+    get_library(library_id)
     
     _LOGGER.info("Deleting library with ID: %s", library_id)
     
@@ -174,12 +166,7 @@ async def enroll_speaker(
     audio_files: list[UploadFile]
 ):
     """Enroll a new speaker with their audio samples."""
-    library = get_voiceprint().get_loaded_library()
-    if not library or not library.id:
-        raise NotFoundError("No library loaded. Please load or create a library first.")
-    
-    if library_id != library.id:
-        raise BadRequestError("Invalid library ID provided.")
+    get_library(library_id)
     
     if not name or not name.strip():
         raise BadRequestError("Please enter a valid speaker name.")
@@ -225,12 +212,7 @@ class IdentifyResponse(BaseModel):
 @api.post("/libraries/{library_id}/identify", response_model=IdentifyResponse)
 async def identify_speaker(library_id: LibraryId, audio_file: UploadFile):
     """Identify a speaker from an audio sample."""
-    library = get_voiceprint().get_loaded_library()
-    if not library or not library.id:
-        raise NotFoundError("No library loaded. Please load or create a library first.")
-    
-    if library_id != library.id:
-        raise BadRequestError("Invalid library ID provided.")
+    library = get_library(library_id)
     
     if not audio_file or not audio_file.filename:
         raise BadRequestError("Please provide a valid audio file for identification.")
@@ -267,12 +249,7 @@ async def identify_speaker(library_id: LibraryId, audio_file: UploadFile):
 @api.delete("/libraries/{library_id}/speakers/{speaker_id}")
 async def delete_speaker(library_id: LibraryId, speaker_id: SpeakerId) -> str:
     """Delete a speaker by ID."""
-    library = get_voiceprint().get_loaded_library()
-    if not library or not library.id:
-        raise NotFoundError("No library loaded. Please load or create a library first.")
-    
-    if library_id != library.id:
-        raise BadRequestError("Invalid library ID provided.")
+    get_library(library_id)
     
     if not speaker_id:
         raise BadRequestError("No speaker selected for deletion.")
