@@ -155,6 +155,10 @@ class Voiceprint:
             return self.library
         except Exception as e:
             raise ValueError(f"Failed to load library: {e}")
+    
+    def get_loaded_library(self) -> Optional[Library]:
+        """Get the current voices library."""
+        return self.library
 
     def delete_library(self, lib_id: LibraryId) -> bool:
         """Delete a library by its ID."""
@@ -176,10 +180,6 @@ class Voiceprint:
         except Exception as e:
             _LOGGER.error(f"Failed to delete library {lib_id}: {e}")
             return False
-
-    def get_loaded_library(self) -> Optional[Library]:
-        """Get the current voices library."""
-        return self.library
 
     def enroll_speaker(self, name: str, audiofiles: list[str]) -> Speaker:
         """Enroll a speaker in the voices library."""
