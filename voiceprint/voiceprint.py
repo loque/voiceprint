@@ -37,7 +37,7 @@ class Voiceprint:
         # Ensure the libraries directory exists
         os.makedirs(self.libs_path, exist_ok=True)
     
-    def get_library_path(self, lib_id: LibraryId) -> str:
+    def _get_library_path(self, lib_id: LibraryId) -> str:
         """Get the file path for a library by its ID."""
         return os.path.join(self.libs_path, f"{lib_id}.pkl")
 
@@ -65,7 +65,7 @@ class Voiceprint:
         if not lib_id:
             raise ValueError("Library ID cannot be empty")
         
-        lib_path = self.get_library_path(lib_id)
+        lib_path = self._get_library_path(lib_id)
         return self._read_library_from_path(lib_path)
     
     def _validate_library_loaded(self, expected_id: Optional[LibraryId] = None) -> Library:
@@ -82,7 +82,7 @@ class Voiceprint:
         """Save the library to file."""
         library = self._validate_library_loaded()
 
-        lib_path = self.get_library_path(library.id)
+        lib_path = self._get_library_path(library.id)
 
         try:
             with open(lib_path, "wb") as f:
@@ -170,7 +170,7 @@ class Voiceprint:
         if not lib_id:
             raise ValueError("Library ID cannot be empty")
         
-        lib_path = self.get_library_path(lib_id)
+        lib_path = self._get_library_path(lib_id)
         
         if not os.path.exists(lib_path):
             _LOGGER.warning(f"Library file not found for deletion: {lib_path}")
