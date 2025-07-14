@@ -6,10 +6,10 @@ import { toast } from "sonner";
 import { Api } from "@/lib/api/api";
 import { Header, HeaderTitle } from "@/components/ui/header";
 import { Body, BodySection } from "@/components/ui/body";
-import { useLibrary } from "@/lib/state/use-library";
+import { useCurrentLibrary } from "@/lib/state/use-current-library";
 
 export function IdentifySpeaker() {
-  const library = useLibrary();
+  const library = useCurrentLibrary();
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
 
   const identify = Api.useMutation("post", "/libraries/{library_id}/identify", {

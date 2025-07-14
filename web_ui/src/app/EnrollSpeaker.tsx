@@ -7,7 +7,7 @@ import { AudioRecorder } from "@/components/recorder/audio-recorder-context";
 import { VoiceSampleRecorder } from "@/components/ui/voice-sample-recorder";
 import { Header, HeaderTitle } from "@/components/ui/header";
 import { Body, BodySection } from "@/components/ui/body";
-import { useLibrary } from "@/lib/state/use-library";
+import { useCurrentLibrary } from "@/lib/state/use-current-library";
 import { useEnrollSpeaker } from "@/lib/state/use-enroll-speaker";
 
 export interface VoiceSample {
@@ -18,7 +18,7 @@ export interface VoiceSample {
 }
 
 export function EnrollSpeaker() {
-  const library = useLibrary();
+  const library = useCurrentLibrary();
   const { enrollSpeaker, isPending } = useEnrollSpeaker();
 
   const [speakerName, setSpeakerName] = useState("");

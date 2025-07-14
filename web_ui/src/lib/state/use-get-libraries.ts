@@ -7,7 +7,7 @@ type UseLibrariesReturn = {
   isFetching: boolean;
 };
 
-export function useLibraries(): UseLibrariesReturn {
+export function useGetLibraries(): UseLibrariesReturn {
   const context = useContext(VoiceprintContext);
   if (context === undefined) {
     throw new Error("useLibraries must be used within a VoiceprintProvider");

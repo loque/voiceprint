@@ -19,12 +19,12 @@ import {
   BodySectionContent,
   BodySectionHeader,
 } from "@/components/ui/body";
-import { useLibrary } from "@/lib/state/use-library";
+import { useCurrentLibrary } from "@/lib/state/use-current-library";
 import { useDeleteSpeaker } from "@/lib/state/use-delete-speaker";
 import { NavLink } from "react-router";
 
 export function Options() {
-  const library = useLibrary();
+  const library = useCurrentLibrary();
   const speakers = library?.speakers || [];
   const { deleteSpeaker } = useDeleteSpeaker();
 
@@ -116,6 +116,11 @@ export function Options() {
               </>
             )}
           </BodySectionContent>
+        </BodySection>
+
+        <BodySection>
+          <BodySectionHeader>Danger Zone</BodySectionHeader>
+          <BodySectionContent></BodySectionContent>
         </BodySection>
       </Body>
 

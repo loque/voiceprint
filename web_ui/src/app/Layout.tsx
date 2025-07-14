@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/sidebar";
 import type { Library } from "@/lib/api/api";
 import { useCreateLibrary } from "@/lib/state";
-import { useLibraries } from "@/lib/state/use-libraries";
+import { useGetLibraries } from "@/lib/state/use-get-libraries";
 import {
   AudioLines,
   CirclePlus,
@@ -153,7 +153,7 @@ function LibraryMenu({ library }: { library: Library }) {
 }
 
 export function Layout() {
-  const { libraries } = useLibraries();
+  const { libraries } = useGetLibraries();
   return (
     <SidebarProvider
       style={

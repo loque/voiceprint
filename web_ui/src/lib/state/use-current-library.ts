@@ -1,10 +1,10 @@
 import { useParams } from "react-router";
-import { useLibraries } from "./use-libraries";
+import { useGetLibraries } from "./use-get-libraries";
 import type { Library } from "../api/api";
 
-export function useLibrary(): Library | undefined {
+export function useCurrentLibrary(): Library | undefined {
   const libraryId = useParams().libraryId;
-  const { libraries } = useLibraries();
+  const { libraries } = useGetLibraries();
   const library = libraries.find((lib) => lib.id === libraryId);
   return library;
 }
