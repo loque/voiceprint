@@ -132,7 +132,7 @@ export function EnrollSpeaker() {
             id="speakerName"
             type="text"
             placeholder="Enter speaker's name..."
-            className="bg-gray-800 border-gray-700 text-white placeholder-gray-400 mt-2"
+            className="mt-2"
             value={speakerName}
             onChange={(e) => setSpeakerName(e.target.value)}
             required
