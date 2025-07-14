@@ -141,7 +141,7 @@ export function EnrollSpeaker() {
 
         {voiceSamples.map((sample, index) => (
           <BodySection key={sample.id} className="gap-2">
-            <Label>Suggested Script {index + 1}</Label>
+            <Label className="justify-center">Sample #{index + 1}</Label>
             <p className="italic text-sm">{sample.script}</p>
             <AudioRecorder>
               <VoiceSampleRecorder
