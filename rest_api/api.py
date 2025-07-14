@@ -135,7 +135,7 @@ async def import_library(lib_file: UploadFile):
             except Exception as cleanup_error:
                 _LOGGER.warning("Failed to cleanup temporary file %s: %s", temp_path, cleanup_error)
 
-@api.get("/libraries/{library_id}/download")
+@api.get("/libraries/{library_id}/file")
 async def download_library(library_id: LibraryId):
     """Download a library by ID."""
     get_library(library_id)

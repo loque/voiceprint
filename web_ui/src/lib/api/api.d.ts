@@ -68,7 +68,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/libraries/{library_id}/download": {
+    "/libraries/{library_id}/file": {
         parameters: {
             query?: never;
             header?: never;
@@ -79,7 +79,7 @@ export interface paths {
          * Download Library
          * @description Download a library by ID.
          */
-        get: operations["download_library_libraries__library_id__download_get"];
+        get: operations["download_library_libraries__library_id__file_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -333,7 +333,7 @@ export interface operations {
             };
         };
     };
-    download_library_libraries__library_id__download_get: {
+    download_library_libraries__library_id__file_get: {
         parameters: {
             query?: never;
             header?: never;

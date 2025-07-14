@@ -309,10 +309,10 @@
         "summary": "Delete Library"
       }
     },
-    "/libraries/{library_id}/download": {
+    "/libraries/{library_id}/file": {
       "get": {
         "description": "Download a library by ID.",
-        "operationId": "download_library_libraries__library_id__download_get",
+        "operationId": "download_library_libraries__library_id__file_get",
         "parameters": [
           {
             "in": "path",
