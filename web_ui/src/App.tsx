@@ -5,16 +5,14 @@ import { IdentifySpeaker } from "./app/IdentifySpeaker";
 import { Options } from "./app/Options";
 import { VoiceprintProvider } from "./lib/state/voiceprint-provider";
 import { LibraryIndex } from "./app/LibraryIndex";
+import { RootIndex } from "./app/RootIndex";
 
 export function App() {
   return (
     <VoiceprintProvider>
       <Routes>
         <Route element={<Layout />}>
-          <Route
-            index
-            element={<div>Select a library or create a new one</div>}
-          />
+          <Route index element={<RootIndex />} />
           <Route path="library/:libraryId">
             <Route index element={<LibraryIndex />} />
             <Route path="identify-speaker" element={<IdentifySpeaker />} />
