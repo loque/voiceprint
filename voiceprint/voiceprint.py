@@ -1,4 +1,4 @@
-import pickle
+import json
 import os
 from typing import List, Optional
 
@@ -6,11 +6,14 @@ import torchaudio
 import torch
 import numpy as np
 from speechbrain.inference.speaker import SpeakerRecognition
+from speechbrain.utils.logger import setup_logging
 
 from utils import get_logger
-from voiceprint.library import Library, LibraryDTO, LibraryId, Speaker, SpeakerId
+from voiceprint.library import Library, LibraryId
+from voiceprint.speaker import Speaker, SpeakerId
 
 _LOGGER = get_logger("voiceprint")
+setup_logging(default_level="INFO")
 
 # Get the absolute path to the model directory relative to this file
 _current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -39,7 +42,7 @@ class Voiceprint:
     
     def _get_library_path(self, lib_id: LibraryId) -> str:
         """Get the file path for a library by its ID."""
-        return os.path.join(self.libs_path, f"{lib_id}.pkl")
+        return os.path.join(self.libs_path, f"{lib_id}.json")
 
     def _read_library_from_path(self, lib_path: str) -> Library:
         """Read a library from a specific file path. Raises exceptions on failure."""
@@ -47,8 +50,8 @@ class Voiceprint:
             raise FileNotFoundError(f"Library file not found: {lib_path}")
         
         try:
-            with open(lib_path, "rb") as f:
-                library_data = pickle.load(f)
+            with open(lib_path, "r", encoding="utf-8") as f:
+                library_data = json.load(f)
 
             library = Library.from_dict(library_data)
             if not isinstance(library, Library):
@@ -83,10 +86,11 @@ class Voiceprint:
         library = self._validate_library_loaded()
 
         lib_path = self._get_library_path(library.id)
+        library_dict = library.to_dict()
 
         try:
-            with open(lib_path, "wb") as f:
-                pickle.dump(library.to_dict(), f)
+            with open(lib_path, "w", encoding="utf-8") as f:
+                json.dump(library_dict, f, indent=4)
             _LOGGER.info(f"Saved library to: {lib_path}")
         except Exception as e:
             raise ValueError(f"Failed to save library: {e}")
@@ -104,21 +108,18 @@ class Voiceprint:
         return self.library
     
     def import_library(self, lib_file_path: str) -> Library:
-        """Import a library from a pickle file."""
+        """Import a library from a json file."""
         if not lib_file_path:
             raise ValueError("Library file path cannot be empty")
         
         if not os.path.exists(lib_file_path):
             raise FileNotFoundError(f"Library file not found: {lib_file_path}")
         
-        if not lib_file_path.endswith('.pkl'):
-            raise ValueError("Library file must be a pickle (.pkl) file")
+        if not lib_file_path.lower().endswith('.json'):
+            raise ValueError("Library file must be a JSON (.json) file")
         
         try:
-            with open(lib_file_path, "rb") as f:
-                library_data = pickle.load(f)
-            
-            self.library = Library.from_dict(library_data)
+            self.library = self._read_library_from_path(lib_file_path)
             self._write_library()
 
             _LOGGER.info(f"Imported library: {self.library.name} (ID: {self.library.id})")
@@ -136,8 +137,8 @@ class Voiceprint:
         libraries: List[Library] = []
         for filename in os.listdir(self.libs_path):
             _LOGGER.debug(f"Checking file: {filename}")
-            if filename.endswith(".pkl"):
-                lib_id = LibraryId(filename[:-4])  # Remove .pkl extension
+            if filename.lower().endswith(".json"):
+                lib_id = LibraryId(filename[:-5])  # Remove .json extension
                 try:
                     library = self._read_library_by_id(lib_id)
                     libraries.append(library)

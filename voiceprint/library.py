@@ -1,19 +1,18 @@
 from datetime import datetime
 from typing import List, NewType, TypedDict
 import numpy as np
+import json
+import os
+from jsonschema import validate, ValidationError
 
-def _sanitize_name(name: str) -> str:
-    """Convert name to valid Unix filename."""
-    return name.replace(' ', '_').replace('-', '_').replace('/', '_').replace('\\', '_').lower()
+from voiceprint.helpers import sanitize_name
+from voiceprint.speaker import Speaker, SpeakerDTO, SpeakerId
+
+library_schema_path = os.path.join(os.path.dirname(__file__), "library_schema.json")
+with open(library_schema_path, "r", encoding="utf-8") as f:
+    library_schema = json.load(f)
     
-SpeakerId = NewType("SpeakerId", str)
 LibraryId = NewType("LibraryId", str)
-
-class SpeakerDTO(TypedDict):
-    """Type definition for a speaker in the library."""
-    id: SpeakerId
-    name: str
-    embeddings: np.ndarray
 
 class LibraryDTO(TypedDict):
     """Type definition for a library."""
@@ -21,61 +20,6 @@ class LibraryDTO(TypedDict):
     name: str
     created_at: str
     speakers: List[SpeakerDTO]
-
-
-class Speaker:
-    _id: SpeakerId
-    _name: str
-    _embeddings: np.ndarray
-
-    @staticmethod
-    def create(name: str, embeddings: np.ndarray) -> 'Speaker':
-        """Create a new speaker."""
-        if not name:
-            raise ValueError("Speaker name cannot be empty")
-        
-        speaker = SpeakerDTO(
-            id=SpeakerId(_sanitize_name(name)),
-            name=name,
-            embeddings=embeddings
-        )
-        return Speaker(speaker)
-
-    @staticmethod
-    def from_dict(data: SpeakerDTO) -> 'Speaker':
-        """Create a Speaker instance from a dictionary."""
-        if not isinstance(data, dict):
-            raise ValueError("Data must be a dictionary")
-        
-        if 'id' not in data or 'name' not in data or 'embeddings' not in data:
-            raise ValueError("Invalid speaker data format")
-        
-        return Speaker(data)
-
-    def __init__(self, speaker: SpeakerDTO):
-        self._id = speaker['id']
-        self._name = speaker['name']
-        self._embeddings = speaker['embeddings']
-
-    @property
-    def id(self) -> SpeakerId:
-        return self._id
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def embeddings(self) -> np.ndarray:
-        return self._embeddings
-    
-    def to_dict(self) -> SpeakerDTO:
-        """Return the speaker as a dictionary."""
-        return {
-            'id': self._id,
-            'name': self._name,
-            'embeddings': self._embeddings
-        }
 
 class Library:
     _id: LibraryId
@@ -87,7 +31,7 @@ class Library:
     def create(name: str) -> 'Library':
         """Create a new voice library."""
         lib = LibraryDTO(
-            id=LibraryId(_sanitize_name(name)),
+            id=LibraryId(sanitize_name(name)),
             name=name,
             created_at=datetime.now().isoformat(),
             speakers=[]
@@ -97,11 +41,10 @@ class Library:
     @staticmethod
     def from_dict(data: LibraryDTO) -> 'Library':
         """Create a Library instance from a dictionary."""
-        if not isinstance(data, dict):
-            raise ValueError("Data must be a dictionary")
-        
-        if 'id' not in data or 'name' not in data or 'created_at' not in data or 'speakers' not in data:
-            raise ValueError("Invalid library data format")
+        try:
+            validate(instance=data, schema=library_schema)
+        except ValidationError as e:
+            raise ValueError(f"Invalid library data format: {e.message}") from e
         
         return Library(data)
 
@@ -145,8 +88,8 @@ class Library:
                 return True
         return False
 
-    def to_dict(self) -> LibraryDTO:
-        """Return the library as a dictionary."""
+    def to_dict(self) -> dict:
+        """Return the library as a dictionary suitable for JSON serialization."""
         return {
             'id': self._id,
             'name': self._name,
