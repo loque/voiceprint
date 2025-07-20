@@ -77,7 +77,6 @@ export function IdentifySpeaker() {
                 <p>
                   <strong>{speaker?.name}</strong>
                 </p>
-                {speaker?.id && <p className=" text-sm ">ID: {speaker?.id}</p>}
               </AlertDescription>
             </Alert>
           </BodySection>
