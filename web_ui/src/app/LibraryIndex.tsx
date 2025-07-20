@@ -1,6 +1,7 @@
 import { BodySectionContent, BodySectionHeader } from "@/components/ui/body";
 import { Button } from "@/components/ui/button";
 import { EmptyScreen } from "@/components/ui/empty-screen";
+import { Header, HeaderTitle } from "@/components/ui/header";
 import { useCurrentLibrary } from "@/lib/state/use-current-library";
 import { Link } from "react-router";
 
@@ -29,14 +30,19 @@ export function LibraryIndex() {
     linkLabel = "Identify speaker";
   }
   return (
-    <EmptyScreen>
-      <BodySectionHeader>{header}</BodySectionHeader>
-      <BodySectionContent className="flex flex-col items-center gap-4">
-        {description}
-        <Button asChild>
-          <Link to={link}>{linkLabel}</Link>
-        </Button>
-      </BodySectionContent>
-    </EmptyScreen>
+    <>
+      <Header>
+        <HeaderTitle>{library.name}</HeaderTitle>
+      </Header>
+      <EmptyScreen>
+        <BodySectionHeader>{header}</BodySectionHeader>
+        <BodySectionContent className="flex flex-col items-center gap-4">
+          {description}
+          <Button asChild>
+            <Link to={link}>{linkLabel}</Link>
+          </Button>
+        </BodySectionContent>
+      </EmptyScreen>
+    </>
   );
 }
