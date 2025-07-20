@@ -20,19 +20,21 @@ export function useEnrollSpeaker() {
   function enrollSpeaker(
     libraryId: string,
     speakerName: string,
-    files: string[],
+    audioFiles: string[],
     { onSuccess, ...options }: Parameters<typeof mutate>[1] = {}
   ) {
+    const formData = new FormData();
+    audioFiles.forEach((file) => {
+      formData.append("audio_files", file);
+    });
     mutate(
       {
         params: {
           path: { library_id: libraryId },
           query: { name: speakerName },
         },
-        body: {
-          // TODO: find a better way to do this
-          audio_files: files,
-        },
+        // @ts-expect-error - body is FormData - TODO: find a better way to type files
+        body: formData,
       },
       {
         ...options,

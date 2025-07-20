@@ -1,4 +1,10 @@
 import { useState } from "react";
+import ReactCountryFlag from "react-country-flag";
+import {
+  availableLanguages,
+  getScriptSuggestions,
+  type LanguageCode,
+} from "./script-suggestions";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -9,68 +15,48 @@ import { Header, HeaderTitle } from "@/components/ui/header";
 import { Body, BodySection } from "@/components/ui/body";
 import { useCurrentLibrary } from "@/lib/state/use-current-library";
 import { useEnrollSpeaker } from "@/lib/state/use-enroll-speaker";
+import { useNavigate } from "react-router";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Number of samples is hardcoded outside the component
+const NUM_SAMPLES = 5;
 
 export interface VoiceSample {
   id: number;
   label: string;
-  script: string;
   audioBlob: Blob | null;
 }
 
 export function EnrollSpeaker() {
+  const navigate = useNavigate();
   const library = useCurrentLibrary();
   const { enrollSpeaker, isPending } = useEnrollSpeaker();
 
   const [speakerName, setSpeakerName] = useState("");
-  const [voiceSamples, setVoiceSamples] = useState<VoiceSample[]>([
-    {
-      id: 1,
-      label: "Voice Sample 1",
-      script:
-        "Hey Assistant, turn on the living room lights and set the temperature to 72 degrees. Also, can you play some relaxing music in the bedroom?",
+  const [voiceSamples, setVoiceSamples] = useState<VoiceSample[]>(
+    Array.from({ length: NUM_SAMPLES }, (_, i) => ({
+      id: i + 1,
+      label: `Voice Sample ${i + 1}`,
       audioBlob: null,
-    },
-    {
-      id: 2,
-      label: "Voice Sample 2",
-      script:
-        "Good morning! Please start the coffee maker, open the garage door, and tell me today's weather forecast and my calendar appointments.",
-      audioBlob: null,
-    },
-    {
-      id: 3,
-      label: "Voice Sample 3",
-      script:
-        "I'm heading to bed now. Turn off all the lights downstairs, lock the front door, and set the alarm for 7 AM tomorrow morning.",
-      audioBlob: null,
-    },
-    {
-      id: 4,
-      label: "Voice Sample 4",
-      script:
-        "Can you dim the kitchen lights to 50 percent, start the dishwasher, and remind me to take out the trash in one hour?",
-      audioBlob: null,
-    },
-    {
-      id: 5,
-      label: "Voice Sample 5",
-      script:
-        "What's the status of all my smart devices? Also, please turn on the porch light and check if any windows are open.",
-      audioBlob: null,
-    },
-  ]);
+    }))
+  );
+
+  const [selectedLanguage, setSelectedLanguage] =
+    useState<LanguageCode>("en_US");
+
+  const scripts = getScriptSuggestions(selectedLanguage);
 
   function setAudioSample(sampleId: number, audioBlob: Blob | null = null) {
     setVoiceSamples((prev) =>
       prev.map((sample) =>
         sample.id === sampleId ? { ...sample, audioBlob } : sample
       )
-    );
-  }
-
-  function resetAudioSamples() {
-    setVoiceSamples((prev) =>
-      prev.map((sample) => ({ ...sample, audioBlob: null }))
     );
   }
 
@@ -85,14 +71,14 @@ export function EnrollSpeaker() {
       toast.error("Please enter a valid speaker name.");
       return;
     }
-    // Check if we have at least some recordings
+
     const recordedSamples = voiceSamples.filter(
       (sample) => sample.audioBlob !== null
     );
 
-    if (recordedSamples.length === 0) {
+    if (recordedSamples.length !== NUM_SAMPLES) {
       toast.info(
-        "Please record at least one voice sample before enrolling the speaker."
+        `Please record all ${NUM_SAMPLES} voice samples before enrolling the speaker.`
       );
       return;
     }
@@ -104,17 +90,23 @@ export function EnrollSpeaker() {
       });
     });
 
-    // TODO: find a better way to type files
     enrollSpeaker(library.id, trimmedName, files as unknown as string[], {
       onSuccess: () => {
-        // Reset form and recordings on successful enrollment
         setSpeakerName("");
-        resetAudioSamples();
-        toast.success("Speaker enrolled successfully!");
+        navigate(`/library/${library.id}/identify-speaker`);
+        toast.success(
+          <>
+            Speaker <i>{trimmedName}</i> enrolled successfully!
+          </>
+        );
       },
       onError: (error) => {
         console.error("Failed to enroll speaker:", error);
-        toast.error("Failed to enroll speaker. Please try again.");
+        toast.error(
+          <>
+            Failed to enroll speaker <i>{speakerName}</i>. Please try again.
+          </>
+        );
       },
     });
   }
@@ -139,10 +131,31 @@ export function EnrollSpeaker() {
           />
         </BodySection>
 
+        <BodySection className="items-end">
+          <Select
+            onValueChange={(value) =>
+              setSelectedLanguage(value as LanguageCode)
+            }
+            defaultValue={selectedLanguage}
+          >
+            <SelectTrigger className="">
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableLanguages.map(({ code, displayName }) => (
+                <SelectItem key={code} value={code}>
+                  <ReactCountryFlag countryCode={code.split("_")[1]!} svg />
+                  {displayName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </BodySection>
+
         {voiceSamples.map((sample, index) => (
           <BodySection key={sample.id} className="gap-2">
             <Label className="justify-center">Sample #{index + 1}</Label>
-            <p className="italic text-sm">{sample.script}</p>
+            <p className="italic text-sm">{scripts[index]}</p>
             <AudioRecorder>
               <VoiceSampleRecorder
                 onChange={(audioBlob) => setAudioSample(sample.id, audioBlob)}
