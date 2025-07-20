@@ -2,16 +2,18 @@ import tempfile
 import os
 from typing import List
 
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import numpy as np
 from pydantic import BaseModel
 
+from voiceprint.library import Library, LibraryDTO, LibraryId
+from voiceprint.speaker import SpeakerDTO, SpeakerId
+from voiceprint.voiceprint import Voiceprint
+
 from rest_api.errors import BadRequestError, InternalServerError, NotFoundError
 from utils import get_logger
-from voiceprint.library import Library, LibraryDTO, LibraryId, SpeakerDTO, SpeakerId
-from voiceprint.voiceprint import Voiceprint
 
 _LOGGER = get_logger("rest_api")
 
@@ -100,15 +102,15 @@ async def create_library(name: str):
         raise InternalServerError("Error creating library.")
 
 @api.post("/libraries/import", response_model=LibraryOut)
-async def import_library(lib_file: UploadFile):
+async def import_library(lib_file: UploadFile = File(...)):
     """Import a library."""
     if not lib_file or not lib_file.filename:
         raise BadRequestError("Please provide a valid library file.")
 
     # Check file extension
     file_extension = os.path.splitext(lib_file.filename)[1].lower()
-    if file_extension != '.pkl':
-        raise BadRequestError("Only pickle (.pkl) files are supported for library import.")
+    if file_extension != '.json':
+        raise BadRequestError("Only .json files are supported for library import.")
 
     temp_path = None
     try:
@@ -116,7 +118,7 @@ async def import_library(lib_file: UploadFile):
         content = await lib_file.read()
         
         # Create a temporary file for the uploaded library
-        temp_fd, temp_path = tempfile.mkstemp(suffix='.pkl')
+        temp_fd, temp_path = tempfile.mkstemp(suffix='.json')
         
         # Write the uploaded file content to the temporary file
         with os.fdopen(temp_fd, 'wb') as temp_file:
@@ -167,7 +169,7 @@ async def delete_library(library_id: LibraryId) -> str:
 async def enroll_speaker(
     library_id: LibraryId,
     name: str,
-    audio_files: list[UploadFile]
+    audio_files: list[UploadFile] = File(...)
 ):
     """Enroll a new speaker with their audio samples."""
     get_library(library_id)
@@ -214,7 +216,7 @@ class IdentifyResponse(BaseModel):
     speaker: SpeakerOut | None
 
 @api.post("/libraries/{library_id}/identify", response_model=IdentifyResponse)
-async def identify_speaker(library_id: LibraryId, audio_file: UploadFile):
+async def identify_speaker(library_id: LibraryId, audio_file: UploadFile = File(...)):
     """Identify a speaker from an audio sample."""
     library = get_library(library_id)
     
