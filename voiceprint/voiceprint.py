@@ -101,6 +101,13 @@ class Voiceprint:
             raise ValueError("Library name cannot be empty")
         
         self.library = Library.create(lib_name)
+        try:
+            self._read_library_by_id(self.library.id)
+            # If no exception, library exists, so forbid import
+            raise ValueError(f"A library with ID '{self.library.id}' already exists. Creation forbidden.")
+        except FileNotFoundError:
+            # Not found, safe to import
+            pass
         self._write_library()
 
         _LOGGER.info(f"Created new library: {lib_name} (ID: {self.library.id})")
@@ -111,15 +118,24 @@ class Voiceprint:
         """Import a library from a json file."""
         if not lib_file_path:
             raise ValueError("Library file path cannot be empty")
-        
+
         if not os.path.exists(lib_file_path):
             raise FileNotFoundError(f"Library file not found: {lib_file_path}")
-        
+
         if not lib_file_path.lower().endswith('.json'):
             raise ValueError("Library file must be a JSON (.json) file")
-        
+
         try:
             self.library = self._read_library_from_path(lib_file_path)
+            # Check if a library with this ID already exists in storage
+            try:
+                self._read_library_by_id(self.library.id)
+                # If no exception, library exists, so forbid import
+                raise ValueError(f"A library with ID '{self.library.id}' already exists. Import forbidden.")
+            except FileNotFoundError:
+                # Not found, safe to import
+                pass
+
             self._write_library()
 
             _LOGGER.info(f"Imported library: {self.library.name} (ID: {self.library.id})")
