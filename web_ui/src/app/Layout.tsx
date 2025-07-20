@@ -1,7 +1,10 @@
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -12,10 +15,12 @@ import {
 } from "@/components/ui/sidebar";
 import { useGetLibraries } from "@/lib/state/use-get-libraries";
 import { AudioLines } from "lucide-react";
+import { FaGithub, FaXTwitter } from "react-icons/fa6";
 import { Outlet } from "react-router";
 import { CreateLibraryButton } from "./sidebar/CreateLibraryButton";
 import { ImportLibraryButton } from "./sidebar/ImportLibraryButton";
 import { LibraryMenu } from "./sidebar/LibraryMenu";
+import { Button } from "@/components/ui/button";
 
 export function Layout() {
   const { libraries } = useGetLibraries();
@@ -52,6 +57,38 @@ export function Layout() {
             <LibraryMenu key={library.id} library={library} />
           ))}
         </SidebarContent>
+        <SidebarFooter>
+          <SidebarGroup>
+            <SidebarGroupLabel>Get help</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0">
+                <SidebarMenuItem>
+                  <Button asChild variant="ghost" className="rounded-full">
+                    <a
+                      href="https://github.com/loque/voiceprint"
+                      target="_blank"
+                    >
+                      <FaGithub />
+                      <span className="text-sidebar-foreground/70">
+                        /loque/voiceprint
+                      </span>
+                    </a>
+                  </Button>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <Button asChild variant="ghost" className="rounded-full">
+                    <a href="https://x.com/loque_js" target="_blank">
+                      <FaXTwitter />
+                      <span className="text-sidebar-foreground/70">
+                        /loque_js
+                      </span>
+                    </a>
+                  </Button>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarFooter>
         <SidebarRail />
       </Sidebar>
       <SidebarInset>
