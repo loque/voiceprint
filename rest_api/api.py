@@ -4,7 +4,7 @@ from typing import List
 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import numpy as np
 from pydantic import BaseModel
 
@@ -39,7 +39,18 @@ def get_voiceprint() -> Voiceprint:
     return voiceprint
 
 
-api.mount("/files/libraries", StaticFiles(directory=get_voiceprint().libs_path), name="library_files")
+@api.get("/files/libraries/{filename}")
+async def download_library_file(filename: str):
+    """Serve library files with Content-Disposition: attachment."""
+    file_path = os.path.join(get_voiceprint().libs_path, filename)
+    if not os.path.exists(file_path):
+        raise NotFoundError("File not found.")
+    return FileResponse(
+        file_path,
+        media_type="application/octet-stream",
+        filename=filename,
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 class SpeakerIn(BaseModel):
     """API model for speaker input."""

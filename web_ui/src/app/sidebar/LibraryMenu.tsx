@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import type { Library } from "@/lib/api/api";
+import { API_HOST, type Library } from "@/lib/api/api";
 import { ArrowDownToLine, CirclePlus, Fingerprint, Users } from "lucide-react";
 import { NavLink } from "react-router";
 
@@ -22,7 +22,7 @@ export function LibraryMenu({ library }: { library: Library }) {
         title="Download Library"
         onClick={() =>
           downloadFile(
-            `/files/libraries/${library.id}.json`,
+            `${API_HOST}/files/libraries/${library.id}.json`,
             `${library.id}.json`
           )
         }
