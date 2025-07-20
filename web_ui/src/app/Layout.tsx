@@ -69,8 +69,8 @@ export function Layout() {
                       target="_blank"
                     >
                       <FaGithub />
-                      <span className="text-sidebar-foreground/70">
-                        /loque/voiceprint
+                      <span className="text-sidebar-foreground/50">
+                        Voiceprint
                       </span>
                     </a>
                   </Button>
@@ -79,8 +79,8 @@ export function Layout() {
                   <Button asChild variant="ghost" className="rounded-full">
                     <a href="https://x.com/loque_js" target="_blank">
                       <FaXTwitter />
-                      <span className="text-sidebar-foreground/70">
-                        /loque_js
+                      <span className="text-sidebar-foreground/50">
+                        Lucas Soler
                       </span>
                     </a>
                   </Button>
