@@ -16,13 +16,15 @@ export function LibraryIndex() {
   let linkLabel;
 
   if (speakers.length < 2) {
-    header = "Enroll Speakers";
-    description = "Enroll at least two speakers to use identification.";
+    header = "Get started!";
+    description =
+      "Enroll at least two speakers to try the speaker identification.";
     link = `/library/${library.id}/enroll-speaker`;
     linkLabel = "Enroll Speaker";
   } else {
-    header = "Identify a speaker";
-    description = "Go to the Identify Speaker page to start identification.";
+    header = "Ready to identify!";
+    description =
+      "You have enough speakers enrolled to try the speaker identification.";
     link = `/library/${library.id}/identify-speaker`;
     linkLabel = "Identify speaker";
   }
