@@ -1,3 +1,5 @@
+name: voiceprint_dashboard
+
 services:
   rest_api:
     build:
