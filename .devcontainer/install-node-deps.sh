@@ -5,4 +5,4 @@ set -e
 npm i -g @antfu/ni
 
 # Install web_ui dependencies
-# cd web_ui && nci
+(cd web_ui && nci)
