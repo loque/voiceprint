@@ -309,8 +309,7 @@ export class AudioRecorderCore {
   protected updateRecordingState(): void {
     if (
       !this.analyser ||
-      this.state.status !== RecorderStatus.RecordingStarted ||
-      !Array.isArray(this.dataArray)
+      this.state.status !== RecorderStatus.RecordingStarted
     ) {
       return;
     }
@@ -319,7 +318,7 @@ export class AudioRecorderCore {
 
     let sum = 0;
     for (let i = 0; i < this.dataArray.length; i++) {
-      const normalized = (this.dataArray[i] - 128) / 128;
+      const normalized = (this.dataArray[i]! - 128) / 128;
       sum += normalized * normalized;
     }
     const rms = Math.sqrt(sum / this.dataArray.length);
