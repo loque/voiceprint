@@ -1,46 +1,78 @@
 # Voiceprint
 
-> ⚠️🚧 **EXPERIMENTAL & WORK IN PROGRESS** 🚧⚠️
->
-> This project is under active development and is not production-ready. Use at your own risk!
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-## Introduction
+**Voiceprint** is a speaker identification system based on [SpeechBrain](https://github.com/speechbrain/speechbrain), a PyTorch-based toolkit for speech processing. This project aims to create a lightweight, efficient, and portable solution for identifying speakers from short audio samples.
 
-**Voiceprint** is a speaker identification system that uses deep learning and audio feature extraction to recognize who is speaking from short audio samples. The system is designed to be efficient and portable, with the goal of running on resource-constrained devices.
+<p align="center">⚠️🚧 EXPERIMENTAL & WORK IN PROGRESS 🚧⚠️</p>
 
-**Final Goal:** Integrate Voiceprint as part of the [Home Assistant](https://www.home-assistant.io/) assist pipeline for local, privacy-friendly speaker identification.
+## Voiceprint Core Library
 
-## Repository Structure
+The core library provides functionality to:
 
-- **voiceprint/**: Written in Python, this is the backend responsible for generating speaker detection models and using them to identify speakers from audio samples.
-- **frontend/**: Written in TypeScript with React/Next.js, this provides a graphical user interface (GUI) for interacting with the backend.
+- Create and manage voice libraries
+- Add and remove speakers and samples
+- Identify speakers from audio inputs
 
-## How to Run
+## Dashboard
 
-You can run Voiceprint using Docker and Docker Compose. This is the recommended way to get started quickly without worrying about dependencies.
+The Dashboard is a web-based GUI for interacting with Voiceprint:
 
-### Prerequisites
+- Create or import voice libraries
+- Record and enroll speaker samples
+- Perform speaker identification
+- Export libraries for external use
 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
+### Running the Dashboard
 
-### Quick Start
+Requires Docker and Docker Compose:
 
-1. Clone this repository:
+1. Clone the repository:
+
    ```bash
-   git clone https://github.com/yourusername/voiceprint.git
+   git clone https://github.com/loque/voiceprint.git
    cd voiceprint
    ```
-2. Start the service:
+
+2. Build and start services:
+
    ```bash
-   docker compose up --build
+   docker-compose up --build
    ```
-3. The service will be available at the address shown in the terminal output.
 
----
+3. Open your browser at [http://localhost:5173](http://localhost:5173) to access the Dashboard.
 
-This project is in early development. Contributions and feedback are welcome!
+## Wyoming Voiceprint
 
----
+Wyoming Voiceprint is a Voiceprint wrapper to integrate with the Wyoming protocol.
 
-Follow me on X: [@loque_js](https://x.com/loque_js)
+## License & Citations
+
+This project uses:
+
+- [SpeechBrain](https://github.com/speechbrain/speechbrain), licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+- The [ECAPA-TDNN speaker recognition model](https://huggingface.co/speechbrain/spkrec-ecapa-voxceleb) provided by the SpeechBrain team.
+
+If you use this project in your research or product, please cite SpeechBrain:
+
+```bibtex
+@misc{speechbrain,
+  title={{SpeechBrain}: A General-Purpose Speech Toolkit},
+  author={Mirco Ravanelli and Titouan Parcollet and Peter Plantinga and Aku Rouhe and Samuele Cornell and Loren Lugosch and Cem Subakan and Nauman Dawalatabad and Abdelwahab Heba and Jianyuan Zhong and Ju-Chieh Chou and Sung-Lin Yeh and Szu-Wei Fu and Chien-Feng Liao and Elena Rastorgueva and François Grondin and William Aris and Hwidong Na and Yan Gao and Renato De Mori and Yoshua Bengio},
+  year={2021},
+  eprint={2106.04624},
+  archivePrefix={arXiv},
+  primaryClass={eess.AS},
+  note={arXiv:2106.04624}
+}
+```
+
+## Contributing
+
+Voiceprint is in early experimental development. I'd love your help exploring the possibilities of speaker identification!
+
+I'm excited to hear from you! Open an [issue](https://github.com/loque/voiceprint/issues/new) to discuss ideas, report bugs, or ask questions about the Wyoming protocol integration.
+
+### Get in Touch
+
+Find me on X (formerly Twitter): [@loque_js](https://x.com/loque_js)

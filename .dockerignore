@@ -1,0 +1,43 @@
+web_ui/
+wyoming_voiceprint/
+
+# Exclude other unnecessary files and directories
+.git/
+.gitignore
+README.md
+*.md
+.vscode/
+.devcontainer/
+.github/
+
+# Exclude Python cache and build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Exclude IDE files
+.idea/
+*.swp
+*.swo
+*~
+
+# Exclude OS files
+.DS_Store
+Thumbs.db

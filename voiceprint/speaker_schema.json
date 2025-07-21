@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Voiceprint Speaker Schema",
+  "type": "object",
+  "required": ["id", "name", "embeddings"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "embeddings": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,22 +1,33 @@
 services:
-  http_server:
-    container_name: voiceprint_http_server
-    image: voiceprint_http_server
-    build: ./voiceprint
+  rest_api:
+    build:
+      context: .
+      dockerfile: rest_api/Dockerfile
     ports:
-      - "5000:5000"
-    volumes:
-      - ./voiceprint/speakers:/app/speakers
-      - ./voiceprint/models:/app/models
-    user: "1000:1000"
-
-  frontend:
-    container_name: voiceprint_frontend
-    image: voiceprint_frontend
-    build: ./frontend
+      - "9797:9797"
     environment:
-      - API_BASE_URL=http://http_server:5000
+      - LIBS_PATH=/app/voiceprint/libs
+    volumes:
+      - libs_path:/app/voiceprint/libs
+    networks:
+      - voiceprint
+
+  web_ui:
+    build:
+      context: web_ui
+      dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://rest_api:9797
     depends_on:
-      - http_server
+      - rest_api
+    networks:
+      - voiceprint
+
+networks:
+  voiceprint:
+    driver: bridge
+
+volumes:
+  libs_path:

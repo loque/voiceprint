@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "voiceprint"
+version = "0.1.0"
+description = "Voice recognition and speaker identification"
+authors = [{ name = "Lucas Soler", email = "hola@lucassoler.com.ar" }]
+requires-python = ">=3.12"
+dependencies = ["speechbrain==1.0.3", "numpy", "jsonschema==4.24.0"]
+
+[project.optional-dependencies]
+cpu = ["torch==2.7.1+cpu", "torchaudio==2.7.1+cpu"]
+gpu = ["torch==2.7.1", "torchaudio==2.7.1"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["voiceprint*"]
+
+[project.urls]
+Homepage = "https://github.com/loque/voiceprint"
+Repository = "https://github.com/loque/voiceprint.git"
