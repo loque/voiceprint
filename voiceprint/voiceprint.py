@@ -49,19 +49,15 @@ class Voiceprint:
         if not os.path.exists(lib_path):
             raise FileNotFoundError(f"Library file not found: {lib_path}")
         
-        try:
-            with open(lib_path, "r", encoding="utf-8") as f:
-                library_data = json.load(f)
+        with open(lib_path, "r", encoding="utf-8") as f:
+            library_data = json.load(f)
 
-            library = Library.from_dict(library_data)
-            if not isinstance(library, Library):
-                raise ValueError("Read data is not a valid Library instance")
+        library = Library.from_dict(library_data)
+        if not isinstance(library, Library):
+            raise ValueError("Read data is not a valid Library instance")
 
-            _LOGGER.info(f"Read library: {library.name} (ID: {library.id})")
-            return library
-        except Exception as e:
-            _LOGGER.error(f"Failed to read library from {lib_path}: {e}")
-            raise
+        _LOGGER.info(f"Read library: {library.name} (ID: {library.id})")
+        return library
 
     def _read_library_by_id(self, lib_id: LibraryId) -> Library:
         """Read a library from file by its ID. Raises exceptions on failure."""
@@ -170,13 +166,9 @@ class Voiceprint:
             _LOGGER.info(f"Library {lib_id} is already loaded")
             return self.library
         
-        try:
-            self.library = self._read_library_by_id(lib_id)
-            _LOGGER.info(f"Loaded voices library: {self.library.name} (ID: {self.library.id})")
-            return self.library
-        except Exception as e:
-            raise ValueError(f"Failed to load library: {e}")
-    
+        self.library = self._read_library_by_id(lib_id)
+        _LOGGER.info(f"Loaded voices library: {self.library.name} (ID: {self.library.id})")
+        return self.library
     
     def get_loaded_library(self) -> Optional[Library]:
         """Get the current voices library."""
