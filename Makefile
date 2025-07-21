@@ -1,14 +1,18 @@
-.PHONY: openapi clean help rest_api web_ui
+.PHONY: help openapi rest_api web_ui
 
-# Generate OpenAPI JSON schema
+help:
+	@echo "Available targets:"
+	@echo "  openapi    - Generate OpenAPI JSON schema"
+	@echo "  rest_api   - Start the REST API server"
+	@echo "  web_ui     - Start the Web UI development server"
+	@echo "  help       - Show this help message"
+
 openapi:
+	@echo "Generating OpenAPI JSON schema and updating TypeScript types..."
 	python rest_api/openapi.py --pretty -o web_ui/openapi.json
 	cd web_ui && npm run generate:openapi
 	@echo "✅ OpenAPI schema generated and TypeScript types updated successfully!"
 
-# Clean generated files
-clean:
-	rm -f web_ui/openapi.json
 
 rest_api:
 	mkdir -p downloads
@@ -16,12 +20,3 @@ rest_api:
 
 web_ui:
 	cd web_ui && npm run dev
-
-# Show available targets
-help:
-	@echo "Available targets:"
-	@echo "  openapi    - Generate OpenAPI JSON schema"
-	@echo "  clean      - Remove generated files"
-	@echo "  rest_api   - Start the REST API server"
-	@echo "  web_ui     - Start the Web UI development server"
-	@echo "  help       - Show this help message"
