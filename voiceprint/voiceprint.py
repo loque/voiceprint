@@ -203,23 +203,23 @@ class Voiceprint:
             _LOGGER.error(f"Failed to delete library {lib_id}: {e}")
             return False
 
-    def enroll_speaker(self, name: str, audiofiles: list[str]) -> Speaker:
+    def enroll_speaker(self, name: str, filepaths: list[str]) -> Speaker:
         """Enroll a speaker in the voices library."""
         library = self._validate_library_loaded()
         
         if not name:
             raise ValueError("Speaker name cannot be empty")
         
-        if not audiofiles:
+        if not filepaths:
             raise ValueError("At least one audio file must be provided")
         
         # Process audio files to extract embeddings
         embeddings = []
-        for wav in audiofiles:
-            if not os.path.exists(wav):
-                raise FileNotFoundError(f"Audio file not found: {wav}")
+        for filepath in filepaths:
+            if not os.path.exists(filepath):
+                raise FileNotFoundError(f"Audio file not found: {filepath}")
             
-            signal, fs = torchaudio.load(wav)
+            signal, fs = torchaudio.load(filepath)
             # Resample & mono normalization done inside encode_batch if needed
             with torch.no_grad():
                 emb = self.model.encode_batch(signal)  # (1, feat_dim, 1)
@@ -247,17 +247,17 @@ class Voiceprint:
             return True
         return False
 
-    def identify_speaker(self, audiofile: str) -> Optional[Speaker]:
+    def identify_speaker(self, filepath: str) -> Optional[Speaker]:
         """Identify a speaker from an audio file."""
         library = self._validate_library_loaded()
         
         if not library.speakers:
             return None
         
-        if not os.path.exists(audiofile):
-            raise FileNotFoundError(f"Audio file not found: {audiofile}")
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f"Audio file not found: {filepath}")
         
-        signal, fs = torchaudio.load(audiofile)
+        signal, fs = torchaudio.load(filepath)
         with torch.no_grad():
             emb = self.model.encode_batch(signal).squeeze().cpu().numpy()
 
