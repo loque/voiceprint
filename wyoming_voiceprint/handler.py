@@ -87,7 +87,6 @@ class WyomingEventHandler(AsyncEventHandler):
                 self._sample_file = None
 
             speaker = self.voiceprint.identify_speaker(self._sample_path)
-            os.unlink(self._sample_path)
             
             return speaker if speaker else None
                 
