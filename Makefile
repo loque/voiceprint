@@ -1,4 +1,4 @@
-.PHONY: openapi clean help
+.PHONY: openapi clean help rest_api web_ui
 
 # Generate OpenAPI JSON schema
 openapi:
@@ -10,9 +10,17 @@ openapi:
 clean:
 	rm -f web_ui/openapi.json
 
+rest_api:
+	LIBS_PATH=./downloads uvicorn rest_api.api:api --host 0.0.0.0 --port 9797
+
+web_ui:
+	cd web_ui && npm run dev
+
 # Show available targets
 help:
 	@echo "Available targets:"
 	@echo "  openapi    - Generate OpenAPI JSON schema"
 	@echo "  clean      - Remove generated files"
+	@echo "  rest_api   - Start the REST API server"
+	@echo "  web_ui     - Start the Web UI development server"
 	@echo "  help       - Show this help message"

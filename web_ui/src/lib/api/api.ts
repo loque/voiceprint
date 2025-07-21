@@ -2,8 +2,7 @@ import createFetchClient from "openapi-fetch";
 import createClient from "openapi-react-query";
 import type { paths, components } from "./api.d";
 
-export const API_HOST =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:9797";
+export const API_HOST = import.meta.env.VITE_API_URL || "http://localhost:9797";
 const fetchClient = createFetchClient<paths>({
   baseUrl: API_HOST,
 });
