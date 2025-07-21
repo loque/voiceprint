@@ -1,5 +1,4 @@
 web_ui/
-wyoming_voiceprint/
 
 # Exclude other unnecessary files and directories
 .git/
@@ -19,7 +18,6 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-downloads/
 eggs/
 .eggs/
 lib/

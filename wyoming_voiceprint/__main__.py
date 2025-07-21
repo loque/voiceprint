@@ -13,7 +13,7 @@ _LOGGER = get_logger("main")
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--uri", help="unix:// or tcp://", default="tcp://0.0.0.0:9002")
+    parser.add_argument("--uri", help="unix:// or tcp://", default="tcp://0.0.0.0:13040")
     parser.add_argument("--library-path", help="Path to library to load", default=None)
     return parser.parse_args()
 

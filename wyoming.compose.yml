@@ -1,0 +1,17 @@
+name: wyoming_voiceprint
+
+services:
+  wyoming_voiceprint:
+    build:
+      context: .
+      dockerfile: wyoming.Dockerfile
+    ports:
+      - "13040:13040"
+    volumes:
+      - ./downloads:/app/libraries
+    entrypoint: python3
+    command: >
+      -m wyoming_voiceprint
+      --uri tcp://0.0.0.0:13040
+      --library-path /app/libraries/test_lib.json
+    restart: unless-stopped
