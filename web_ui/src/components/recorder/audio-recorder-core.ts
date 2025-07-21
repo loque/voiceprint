@@ -307,8 +307,13 @@ export class AudioRecorderCore {
   }
 
   protected updateRecordingState(): void {
-    if (!this.analyser || this.state.status !== RecorderStatus.RecordingStarted)
+    if (
+      !this.analyser ||
+      this.state.status !== RecorderStatus.RecordingStarted ||
+      !Array.isArray(this.dataArray)
+    ) {
       return;
+    }
 
     this.analyser.getByteTimeDomainData(this.dataArray);
 
