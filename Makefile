@@ -11,6 +11,7 @@ clean:
 	rm -f web_ui/openapi.json
 
 rest_api:
+	mkdir -p downloads
 	LIBS_PATH=./downloads uvicorn rest_api.api:api --host 0.0.0.0 --port 9797
 
 web_ui:
