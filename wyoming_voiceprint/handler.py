@@ -4,11 +4,10 @@ import wave
 from typing import Optional
 import os
 
-from wyoming.audio import AudioChunk, AudioStart, AudioStop
+from wyoming.audio import AudioChunk
 from wyoming.event import Event
 from wyoming.server import AsyncEventHandler
 from wyoming.asr import Transcript
-from wyoming.tts import Synthesize
 
 from voiceprint.speaker import Speaker
 from voiceprint.voiceprint import Voiceprint
