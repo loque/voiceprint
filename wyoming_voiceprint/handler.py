@@ -2,6 +2,7 @@ import io
 import tempfile
 import wave
 from typing import Optional
+import os
 
 from wyoming.audio import AudioChunk, AudioStart, AudioStop
 from wyoming.event import Event
@@ -9,6 +10,7 @@ from wyoming.server import AsyncEventHandler
 from wyoming.asr import Transcript
 from wyoming.tts import Synthesize
 
+from voiceprint.speaker import Speaker
 from voiceprint.voiceprint import Voiceprint
 from utils import get_logger
 
@@ -21,29 +23,24 @@ class WyomingEventHandler(AsyncEventHandler):
         super().__init__(*args, **kwargs)
         self.voiceprint = voiceprint
         
-        # Audio accumulation state
-        self.audio_buffer = io.BytesIO()
-        self.audio_params = None
-        self.is_recording = False
-        
         _LOGGER.info("Initialized voiceprint handler")
-        library = self.voiceprint.get_loaded_library()
-        if library:
-            speakers = list(library["speakers"].values())
-            speaker_names = [speaker["name"] for speaker in speakers]
-            _LOGGER.info("Enrolled speakers: %s", speaker_names)
-        else:
-            _LOGGER.info("No library loaded")
+        library = voiceprint.get_loaded_library()
+        if not library:
+            raise ValueError("No library loaded in Voiceprint instance")
+        
+        speakers = library.speakers
+        speaker_names = [speaker.name for speaker in speakers]
+        _LOGGER.info("Library loaded with %d enrolled speakers: %s", len(speakers), speaker_names)
+
+        # Temporary audio files for accumulating audio chunks
+        self.temp_file: Optional[tempfile._TemporaryFileWrapper[bytes]] = None
+        self.wave_file: Optional[wave.Wave_write] = None
 
     async def handle_event(self, event: Event) -> bool:
         """Handle all Wyoming events."""
         
-        if AudioStart.is_type(event.type):
-            await self._handle_audio_start(event)
-        elif AudioChunk.is_type(event.type):
+        if AudioChunk.is_type(event.type):
             await self._handle_audio_chunk(event)
-        elif AudioStop.is_type(event.type):
-            await self._handle_audio_stop(event)
         elif Transcript.is_type(event.type):
             await self._handle_transcript(event)
         else:
@@ -51,34 +48,26 @@ class WyomingEventHandler(AsyncEventHandler):
 
         return True
 
-    async def _handle_audio_start(self, event: Event) -> None:
-        """Handle audio stream start."""
-        _LOGGER.info("Audio stream started")
-        self.audio_buffer = io.BytesIO()
-        self.audio_params = event.data
-        self.is_recording = True
-
     async def _handle_audio_chunk(self, event: Event) -> None:
         """Accumulate audio chunks."""
-        if self.is_recording and event.payload:
-            self.audio_buffer.write(event.payload)
+        chunk = AudioChunk.from_event(event)
 
-    async def _handle_audio_stop(self, event: Event) -> None:
-        """Handle audio stream end."""
-        _LOGGER.info("Audio stream stopped")
-        self.is_recording = False
+        if self.temp_file is None:
+            self.temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+            self.wave_file = wave.open(self.temp_file.name, "wb")
+            self.wave_file.setframerate(chunk.rate)
+            self.wave_file.setsampwidth(chunk.width)
+            self.wave_file.setnchannels(chunk.channels)
+
+        if self.wave_file is None:
+            _LOGGER.warning("No wave file initialized; cannot write audio chunk")
+        else:
+            self.wave_file.writeframes(chunk.audio)
 
     async def _handle_transcript(self, event: Event) -> None:
-        """Handle transcript event and trigger speaker identification."""
-        transcript_text = event.data.get("text", "") if event.data else ""
-        _LOGGER.info("Received transcript: %s", transcript_text)
+        """Trigger speaker identification on Transcript event."""
         
-        if not self.audio_buffer.getvalue():
-            _LOGGER.warning("No audio data available for speaker identification")
-            return
-            
-        # Identify speaker from accumulated audio
-        speaker_id = await self._identify_speaker_from_audio()
+        speaker_id = self._identify_speaker_from_audio()
         
         if speaker_id:
             _LOGGER.info("Identified speaker: %s", speaker_id)
@@ -98,29 +87,29 @@ class WyomingEventHandler(AsyncEventHandler):
             # Forward original event
             await self.write_event(event)
 
-    async def _identify_speaker_from_audio(self) -> Optional[str]:
-        """Identify speaker from accumulated audio buffer."""
+    def _get_file_path(self) -> str:
+        """Get the path of the temporary file."""
+        if self.temp_file is None:
+            raise ValueError("Temporary file is missing")
+        
+        temp_file_path = self.temp_file.name
+        self.temp_file.close()
+        self.temp_file = None
+
+        if self.wave_file:
+            self.wave_file.close()
+            self.wave_file = None
+
+        return temp_file_path
+    
+    def _identify_speaker_from_audio(self) -> Optional[Speaker]:
+        """Identify speaker from audio file."""
         try:
-            if not self.audio_params or not self.audio_buffer.getvalue():
-                return None
-                
-            # Create temporary WAV file from audio buffer
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
-                # Write WAV header and audio data
-                with wave.open(temp_file.name, 'wb') as wav_file:
-                    wav_file.setnchannels(self.audio_params.get("channels", 1))
-                    wav_file.setsampwidth(self.audio_params.get("width", 2))
-                    wav_file.setframerate(self.audio_params.get("rate", 16000))
-                    wav_file.writeframes(self.audio_buffer.getvalue())
-                
-                # Identify speaker using voiceprint
-                speaker = self.voiceprint.identify_speaker(temp_file.name)
-                
-                # Clean up temporary file
-                import os
-                os.unlink(temp_file.name)
-                
-                return speaker["name"] if speaker else None
+            file_path = self._get_file_path()
+            speaker = self.voiceprint.identify_speaker(file_path)
+            os.unlink(file_path)
+            
+            return speaker if speaker else None
                 
         except Exception as e:
             _LOGGER.error("Error identifying speaker: %s", e)

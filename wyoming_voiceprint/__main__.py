@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 from functools import partial
+import os
 
 from wyoming.server import AsyncServer
 
@@ -13,35 +14,22 @@ _LOGGER = get_logger("main")
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--uri", help="unix:// or tcp://", default="tcp://0.0.0.0:9002")
-    parser.add_argument("--libraries-path", help="Path to libraries directory", default=None)
-    parser.add_argument("--library-id", help="Library ID to load", default="default_library")
+    parser.add_argument("--library-path", help="Path to library to load", default=None)
     return parser.parse_args()
 
 async def main() -> None:
     args = parse_arguments()
+    if not args.library_path:
+        raise ValueError("Library path must be specified with --library-path")
+    
+    library_dir = os.path.dirname(args.library_path)
+    library_id = os.path.splitext(os.path.basename(args.library_path))[0]
+    _LOGGER.info("Loading library %s in folder %s", library_id, library_dir)
+
+    # Initialize Voiceprint
+    voiceprint = Voiceprint(libs_path=library_dir)
+
     _LOGGER.info("Starting Wyoming Voiceprint on %s", args.uri)
-    _LOGGER.info("Using libraries path: %s", args.libraries_path or "default location")
-    _LOGGER.info("Using library ID: %s", args.library_id)
-
-    # Initialize Voiceprint instance
-    _LOGGER.info("Initializing Voiceprint model...")
-    voiceprint = Voiceprint(libs_path=args.libraries_path)
-    
-    # Load or create speakers library
-    try:
-        voiceprint.load_library(args.library_id)
-    except FileNotFoundError:
-        _LOGGER.warning("Library not found, creating new library")
-        voiceprint.create_library("Wyoming Voice Library")
-    
-    library = voiceprint.get_loaded_library()
-    if library:
-        speakers = list(library["speakers"].values())
-        speaker_names = [speaker["name"] for speaker in speakers]
-        _LOGGER.info("Voiceprint initialized with %d enrolled speakers: %s", len(speakers), speaker_names)
-    else:
-        _LOGGER.info("Voiceprint initialized with no library loaded")
-
     server = AsyncServer.from_uri(args.uri)
 
     try:
