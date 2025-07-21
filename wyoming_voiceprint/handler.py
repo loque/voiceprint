@@ -22,15 +22,6 @@ class WyomingEventHandler(AsyncEventHandler):
         super().__init__(*args, **kwargs)
         self.voiceprint = voiceprint
         
-        _LOGGER.info("Initialized voiceprint handler")
-        library = voiceprint.get_loaded_library()
-        if not library:
-            raise ValueError("No library loaded in Voiceprint instance")
-        
-        speakers = library.speakers
-        speaker_names = [speaker.name for speaker in speakers]
-        _LOGGER.info("Library loaded with %d enrolled speakers: %s", len(speakers), speaker_names)
-
         # Temporary audio files for accumulating audio chunks
         self.temp_file: Optional[tempfile._TemporaryFileWrapper[bytes]] = None
         self.wave_file: Optional[wave.Wave_write] = None

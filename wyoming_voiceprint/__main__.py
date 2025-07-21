@@ -29,6 +29,12 @@ async def main() -> None:
     # Initialize Voiceprint
     voiceprint = Voiceprint(libs_path=library_dir)
 
+    # Log the loaded library and speakers
+    library = voiceprint.load_library(library_id)
+    speakers = library.speakers
+    speaker_names = [speaker.name for speaker in speakers]
+    _LOGGER.info("Library loaded with %d enrolled speakers: %s", len(speakers), ", ".join(speaker_names))
+
     _LOGGER.info("Starting Wyoming Voiceprint on %s", args.uri)
     server = AsyncServer.from_uri(args.uri)
 
