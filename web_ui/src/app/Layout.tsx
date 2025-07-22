@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useGetLibraries } from "@/lib/state/use-get-libraries";
 import { AudioLines } from "lucide-react";
-import { FaGithub, FaXTwitter } from "react-icons/fa6";
+import { FaGithub, FaReddit, FaXTwitter } from "react-icons/fa6";
 import { Outlet } from "react-router";
 import { CreateLibraryButton } from "./sidebar/CreateLibraryButton";
 import { ImportLibraryButton } from "./sidebar/ImportLibraryButton";
@@ -59,9 +59,32 @@ export function Layout() {
         </SidebarContent>
         <SidebarFooter>
           <SidebarGroup>
-            <SidebarGroupLabel>Get help</SidebarGroupLabel>
+            <SidebarGroupLabel>Get in touch</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu className="gap-0">
+                <SidebarMenuItem>
+                  <Button asChild variant="ghost" className="rounded-full">
+                    <a href="https://x.com/loque_js" target="_blank">
+                      <FaXTwitter />
+                      <span className="text-sidebar-foreground/50">
+                        loque_js
+                      </span>
+                    </a>
+                  </Button>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <Button asChild variant="ghost" className="rounded-full">
+                    <a
+                      href="https://www.reddit.com/user/the_loque/"
+                      target="_blank"
+                    >
+                      <FaReddit />
+                      <span className="text-sidebar-foreground/50">
+                        the_loque
+                      </span>
+                    </a>
+                  </Button>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                   <Button asChild variant="ghost" className="rounded-full">
                     <a
@@ -70,17 +93,7 @@ export function Layout() {
                     >
                       <FaGithub />
                       <span className="text-sidebar-foreground/50">
-                        Voiceprint
-                      </span>
-                    </a>
-                  </Button>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <Button asChild variant="ghost" className="rounded-full">
-                    <a href="https://x.com/loque_js" target="_blank">
-                      <FaXTwitter />
-                      <span className="text-sidebar-foreground/50">
-                        Lucas Soler
+                        voiceprint
                       </span>
                     </a>
                   </Button>
