@@ -75,4 +75,7 @@ I'm excited to hear from you! Open an [issue](https://github.com/loque/voiceprin
 
 ### Get in Touch
 
-Find me on X (formerly Twitter): [@loque_js](https://x.com/loque_js)
+Find me on:
+
+- X (formerly Twitter): [@loque_js](https://x.com/loque_js)
+- Reddit: [the_loque](https://www.reddit.com/user/the_loque/)
