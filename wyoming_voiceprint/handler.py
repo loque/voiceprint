@@ -2,7 +2,7 @@ import wave
 from typing import Optional
 import os
 
-from wyoming.audio import AudioChunk
+from wyoming.audio import AudioStart, AudioChunk
 from wyoming.event import Event
 from wyoming.server import AsyncEventHandler
 from wyoming.asr import Transcript
@@ -33,7 +33,9 @@ class WyomingEventHandler(AsyncEventHandler):
     async def handle_event(self, event: Event) -> bool:
         """Handle all Wyoming events."""
 
-        if AudioChunk.is_type(event.type):
+        if AudioStart.is_type(event.type):
+            await self._handle_audio_start(event)
+        elif AudioChunk.is_type(event.type):
             await self._handle_audio_chunk(event)
         elif Transcript.is_type(event.type):
             await self._handle_transcript(event)
@@ -41,6 +43,13 @@ class WyomingEventHandler(AsyncEventHandler):
             _LOGGER.info("Unhandled event [%s]: %s", event.type, event.data)
 
         return True
+    
+    async def _handle_audio_start(self, event: Event) -> None:
+        """Initialize audio sample accumulation."""
+        _LOGGER.info("Audio start event received, resetting speaker_id")
+        
+        next_event = self._set_speaker_id(event, "unknown")
+        await self.write_event(next_event)
 
     async def _handle_audio_chunk(self, event: Event) -> None:
         """Accumulate audio chunks."""
@@ -62,24 +71,26 @@ class WyomingEventHandler(AsyncEventHandler):
         if speaker:
             _LOGGER.info("Identified speaker: %s", speaker.name)
             
-            # Add speaker_id to the transcript event
-            next_data = dict(event.data) if event.data else {}
-            ext_value = next_data.get("ext")
-            if not ext_value or not isinstance(ext_value, dict):
-                next_data["ext"] = {}
-            next_data["ext"]["speaker_id"] = speaker.id
-            
-            # Create new event with speaker identification
-            next_event = Event(type=event.type, data=next_data, payload=event.payload)
+            # Create new event with with the identified speaker
+            next_event = self._set_speaker_id(event, speaker.id)
             await self.write_event(next_event)
         else:
             _LOGGER.warning("Could not identify speaker from audio")
             # Forward original event
             await self.write_event(event)
+    
+    def _set_speaker_id(self, event: Event, speaker_id: str) -> Event:
+        """Clone an event with a new speaker_id in the ext field."""
+        next_data = dict(event.data) if event.data else {}
+        ext_value = next_data.get("ext")
+        if not ext_value or not isinstance(ext_value, dict):
+            next_data["ext"] = {}
+        next_data["ext"]["speaker_id"] = speaker_id
+
+        return Event(type=event.type, data=next_data, payload=event.payload)
 
     def _identify_speaker_from_audio(self) -> Optional[Speaker]:
         """Identify speaker from audio file."""
-
         try:
             if self._sample_file is not None:
                 _LOGGER.warning("Audio file is still open. Closing it now.")
