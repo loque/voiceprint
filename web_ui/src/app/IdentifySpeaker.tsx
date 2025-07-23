@@ -1,6 +1,4 @@
-import { Button } from "@/components/ui/button";
 import { VoiceSampleRecorder } from "@/components/ui/voice-sample-recorder";
-import { useState } from "react";
 import { AudioRecorder } from "@/components/recorder/audio-recorder-context";
 import { toast } from "sonner";
 import { Header, HeaderTitle } from "@/components/ui/header";
@@ -12,19 +10,12 @@ import { useIdentifySpeaker } from "@/lib/state/use-identify-speaker";
 
 export function IdentifySpeaker() {
   const library = useCurrentLibrary();
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
 
-  const { identifySpeaker, isPending, isError, reset, speaker } =
-    useIdentifySpeaker();
+  const { identifySpeaker, isError, speaker, reset } = useIdentifySpeaker();
 
-  function handleIdentify() {
+  function handleIdentify(audioBlob: Blob) {
     if (!library) {
       toast.error("No library selected. Please select a library first.");
-      return;
-    }
-
-    if (!audioBlob) {
-      toast.error("Please record audio before identifying the speaker.");
       return;
     }
 
@@ -49,23 +40,15 @@ export function IdentifySpeaker() {
           <AudioRecorder>
             <VoiceSampleRecorder
               onChange={(audioBlob) => {
-                setAudioBlob(audioBlob);
-                reset();
+                if (audioBlob) {
+                  handleIdentify(audioBlob);
+                } else {
+                  reset();
+                }
               }}
               className="w-full"
             />
           </AudioRecorder>
-        </BodySection>
-
-        <BodySection>
-          <Button
-            onClick={handleIdentify}
-            disabled={!audioBlob || isPending}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-            size="lg"
-          >
-            {isPending ? "Identifying..." : "Identify Speaker"}
-          </Button>
         </BodySection>
 
         {speaker && (
