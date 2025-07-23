@@ -39,7 +39,7 @@ def get_voiceprint() -> Voiceprint:
     return voiceprint
 
 
-@api.get("/files/libraries/{filename}")
+@api.get("/files/libraries/{filename}", include_in_schema=False)
 async def download_library_file(filename: str):
     """Serve library files with Content-Disposition: attachment."""
     file_path = os.path.join(get_voiceprint().libs_path, filename)
