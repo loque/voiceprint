@@ -158,9 +158,14 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
-        /** IdentifyResponse */
-        IdentifyResponse: {
-            speaker: components["schemas"]["SpeakerOut"] | null;
+        /** IdentifiedSpeaker */
+        IdentifiedSpeaker: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Similarity */
+            similarity: number;
         };
         /** LibraryOut */
         LibraryOut: {
@@ -172,6 +177,11 @@ export interface components {
             name: string;
             /** Speakers */
             speakers: components["schemas"]["SpeakerOut"][];
+        };
+        /** SpeakerIdentificationResponse */
+        SpeakerIdentificationResponse: {
+            /** Speakers */
+            speakers: components["schemas"]["IdentifiedSpeaker"][];
         };
         /** SpeakerOut */
         SpeakerOut: {
@@ -315,7 +325,10 @@ export interface operations {
     };
     identify_speaker_libraries__library_id__identify_post: {
         parameters: {
-            query?: never;
+            query?: {
+                threshold?: number | null;
+                limit?: number | null;
+            };
             header?: never;
             path: {
                 library_id: string;
@@ -334,7 +347,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IdentifyResponse"];
+                    "application/json": components["schemas"]["SpeakerIdentificationResponse"];
                 };
             };
             /** @description Validation Error */
