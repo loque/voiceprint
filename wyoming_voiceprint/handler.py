@@ -8,7 +8,7 @@ from wyoming.server import AsyncEventHandler
 from wyoming.asr import Transcript
 
 from voiceprint.speaker import Speaker
-from voiceprint.voiceprint import Voiceprint
+from voiceprint.voiceprint import IdentifiedSpeaker, Voiceprint
 from utils import get_logger
 
 _LOGGER = get_logger("handler")
@@ -69,13 +69,13 @@ class WyomingEventHandler(AsyncEventHandler):
         speaker = self._identify_speaker_from_audio()
         
         if speaker:
-            _LOGGER.info("Identified speaker: %s", speaker.name)
+            _LOGGER.info("Identified speaker: %s", speaker["name"])
             
             # Create new event with with the identified speaker
-            next_event = self._set_speaker_id(event, speaker.id)
+            next_event = self._set_speaker_id(event, speaker["id"])
             await self.write_event(next_event)
         else:
-            _LOGGER.warning("Could not identify speaker from audio")
+            _LOGGER.warning("Could not identify speaker in audio")
             # Forward original event
             await self.write_event(event)
     
@@ -89,7 +89,7 @@ class WyomingEventHandler(AsyncEventHandler):
 
         return Event(type=event.type, data=next_data, payload=event.payload)
 
-    def _identify_speaker_from_audio(self) -> Optional[Speaker]:
+    def _identify_speaker_from_audio(self) -> Optional[IdentifiedSpeaker]:
         """Identify speaker from audio file."""
         try:
             if self._sample_file is not None:
@@ -97,10 +97,14 @@ class WyomingEventHandler(AsyncEventHandler):
                 self._sample_file.close()
                 self._sample_file = None
 
-            speaker = self.voiceprint.identify_speaker(self._sample_path)
-            
-            return speaker if speaker else None
-                
+            res = self.voiceprint.identify_speaker(self._sample_path)
+            speaker = res["speakers"][0]
+            if speaker["similarity"] < 0.6:
+                _LOGGER.warning("Speaker similarity too low: %s", speaker["similarity"])
+                return None
+
+            return speaker
+
         except Exception as e:
             _LOGGER.error("Error identifying speaker: %s", e)
             return None
