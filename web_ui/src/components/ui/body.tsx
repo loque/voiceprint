@@ -30,7 +30,10 @@ export function BodySectionHeader({
 }: ChildrenAndClassname) {
   return (
     <h2
-      className={cn("text-lg font-semibold mb-4", className)}
+      className={cn(
+        "text-lg font-semibold mb-4 flex items-center gap-2",
+        className
+      )}
       data-slot="body-section-header"
     >
       {children}
