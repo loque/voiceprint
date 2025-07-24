@@ -1,6 +1,6 @@
 import tempfile
 import os
-from typing import List
+from typing import List, Optional
 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from voiceprint.library import Library, LibraryDTO, LibraryId
 from voiceprint.speaker import SpeakerDTO, SpeakerId
-from voiceprint.voiceprint import Voiceprint
+from voiceprint.voiceprint import SpeakerIdentificationResponse, Voiceprint
 
 from rest_api.errors import BadRequestError, InternalServerError, NotFoundError
 from utils import get_logger
@@ -223,11 +223,13 @@ async def enroll_speaker(
             except Exception as cleanup_error:
                 _LOGGER.warning("Failed to cleanup temporary file %s: %s", temp_path, cleanup_error)
 
-class IdentifyResponse(BaseModel):
-    speaker: SpeakerOut | None
-
-@api.post("/libraries/{library_id}/identify", response_model=IdentifyResponse)
-async def identify_speaker(library_id: LibraryId, audio_file: UploadFile = File(...)):
+@api.post("/libraries/{library_id}/identify")
+async def identify_speaker(
+    library_id: LibraryId,
+    audio_file: UploadFile = File(...),
+    threshold: Optional[float] = None,
+    limit: Optional[int] = None
+) -> SpeakerIdentificationResponse:
     """Identify a speaker from an audio sample."""
     library = get_library(library_id)
     
@@ -248,8 +250,12 @@ async def identify_speaker(library_id: LibraryId, audio_file: UploadFile = File(
             temp_file.write(content)
         
         # Identify the speaker using the temporary file path
-        identified_speaker = get_voiceprint().identify_speaker(temp_path)
-        return {"speaker": identified_speaker}
+        res = get_voiceprint().identify_speaker(
+            filepath=temp_path,
+            threshold=threshold,
+            limit=limit
+        )
+        return res
 
     except Exception as e:
         _LOGGER.error("Error identifying speaker: %s", str(e))

@@ -59,23 +59,27 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
-      "IdentifyResponse": {
+      "IdentifiedSpeaker": {
         "properties": {
-          "speaker": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SpeakerOut"
-              },
-              {
-                "type": "null"
-              }
-            ]
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "similarity": {
+            "title": "Similarity",
+            "type": "number"
           }
         },
         "required": [
-          "speaker"
+          "id",
+          "name",
+          "similarity"
         ],
-        "title": "IdentifyResponse",
+        "title": "IdentifiedSpeaker",
         "type": "object"
       },
       "LibraryOut": {
@@ -107,6 +111,22 @@
           "speakers"
         ],
         "title": "LibraryOut",
+        "type": "object"
+      },
+      "SpeakerIdentificationResponse": {
+        "properties": {
+          "speakers": {
+            "items": {
+              "$ref": "#/components/schemas/IdentifiedSpeaker"
+            },
+            "title": "Speakers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "speakers"
+        ],
+        "title": "SpeakerIdentificationResponse",
         "type": "object"
       },
       "SpeakerOut": {
@@ -322,6 +342,38 @@
               "title": "Library Id",
               "type": "string"
             }
+          },
+          {
+            "in": "query",
+            "name": "threshold",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Threshold"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Limit"
+            }
           }
         ],
         "requestBody": {
@@ -339,7 +391,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/IdentifyResponse"
+                  "$ref": "#/components/schemas/SpeakerIdentificationResponse"
                 }
               }
             },

@@ -1,6 +1,6 @@
 import json
 import os
-from typing import List, Optional
+from typing import List, Optional, TypedDict
 
 import torchaudio
 import torch
@@ -16,9 +16,17 @@ _LOGGER = get_logger("voiceprint")
 setup_logging(default_level="INFO")
 
 # Get the absolute path to the model directory relative to this file
-_current_dir = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(_current_dir, "models", "spkrec-ecapa-voxceleb")
-default_libs_path = os.path.join(_current_dir, "libs")
+_cwd = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(_cwd, "models", "spkrec-ecapa-voxceleb")
+default_libs_path = os.path.join(_cwd, "libs")
+
+class IdentifiedSpeaker(TypedDict):
+    id: str
+    name: str
+    similarity: float
+
+class SpeakerIdentificationResponse(TypedDict):
+    speakers: List[IdentifiedSpeaker]
 class Voiceprint:
     model: SpeakerRecognition
     library: Optional[Library]
@@ -239,34 +247,53 @@ class Voiceprint:
             return True
         return False
 
-    def identify_speaker(self, filepath: str) -> Optional[Speaker]:
+    def identify_speaker(
+            self,
+            filepath: str,
+            threshold: Optional[float] = None,
+            limit: Optional[int] = None
+    ) -> SpeakerIdentificationResponse:
         """Identify a speaker from an audio file."""
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f"Audio file not found: {filepath}")
+        
         library = self._validate_library_loaded()
         
         if not library.speakers:
-            return None
-        
-        if not os.path.exists(filepath):
-            raise FileNotFoundError(f"Audio file not found: {filepath}")
+            return {"speakers": []}
         
         signal, fs = torchaudio.load(filepath)
         with torch.no_grad():
             emb = self.model.encode_batch(signal).squeeze().cpu().numpy()
 
         # Compute cosine similarities
-        best_speaker: Optional[Speaker] = None
-        best_similarity = -1
-        
+        speakers: List[IdentifiedSpeaker] = []
         for speaker in library.speakers:
+            # Raw cosine similarity is -1..1
             similarity = np.dot(emb, speaker.embeddings) / (
                 np.linalg.norm(emb) * np.linalg.norm(speaker.embeddings)
             )
-            if similarity > best_similarity:
-                best_similarity = similarity
-                best_speaker = speaker
+            # Normalize to 0..1, clamp for numerical noise
+            # This way, 0 means no similarity, 1 means perfect match
+            similarity = max(0.0, min(1.0, (similarity + 1) / 2))
+            speakers.append({
+                "id": speaker.id,
+                "name": speaker.name,
+                "similarity": float(similarity)
+            })
         
-        if best_speaker is None:
-            _LOGGER.warning("No speaker identified from the audio file")
-            return None
-
-        return best_speaker
+        # Sort by similarity (descending)
+        speakers.sort(key=lambda x: x["similarity"], reverse=True)
+        
+        # Apply threshold if provided
+        if threshold is not None:
+            if threshold < 0 or threshold > 1:
+                raise ValueError("Threshold must be between 0 and 1")
+            # Filter speakers below threshold
+            speakers = [s for s in speakers if s["similarity"] >= threshold]
+        
+        # Limit results if specified
+        if limit is not None:
+            speakers = speakers[:limit]
+        
+        return {"speakers": speakers}
