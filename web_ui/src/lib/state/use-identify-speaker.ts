@@ -45,6 +45,6 @@ export function useIdentifySpeaker() {
     isError,
     error,
     reset,
-    speaker: data?.speaker,
+    speakers: data?.speakers || [],
   };
 }

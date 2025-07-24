@@ -2,16 +2,29 @@ import { VoiceSampleRecorder } from "@/components/ui/voice-sample-recorder";
 import { AudioRecorder } from "@/components/recorder/audio-recorder-context";
 import { toast } from "sonner";
 import { Header, HeaderTitle } from "@/components/ui/header";
-import { Body, BodySection } from "@/components/ui/body";
+import {
+  Body,
+  BodySection,
+  BodySectionContent,
+  BodySectionHeader,
+} from "@/components/ui/body";
 import { useCurrentLibrary } from "@/lib/state/use-current-library";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon, CheckCircle2Icon } from "lucide-react";
 import { useIdentifySpeaker } from "@/lib/state/use-identify-speaker";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
 
 export function IdentifySpeaker() {
   const library = useCurrentLibrary();
 
-  const { identifySpeaker, isError, speaker, reset } = useIdentifySpeaker();
+  const { identifySpeaker, isError, speakers, reset } = useIdentifySpeaker();
 
   function handleIdentify(audioBlob: Blob) {
     if (!library) {
@@ -51,17 +64,46 @@ export function IdentifySpeaker() {
           </AudioRecorder>
         </BodySection>
 
-        {speaker && (
+        {speakers.length > 0 && (
           <BodySection>
-            <Alert className="text-success bg-success/10 border-success/30">
+            <BodySectionHeader>
               <CheckCircle2Icon />
-              <AlertTitle>Speaker Identified</AlertTitle>
-              <AlertDescription>
-                <p>
-                  <strong>{speaker?.name}</strong>
-                </p>
-              </AlertDescription>
-            </Alert>
+              Speaker identification results
+            </BodySectionHeader>
+            <BodySectionContent>
+              <Table
+                containerClassName="flex justify-center"
+                className="max-w-xl"
+              >
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead className="text-right">Similarity</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {speakers.map((speaker, index) => (
+                    <TableRow
+                      key={speaker.id}
+                      className={
+                        index === 0
+                          ? "text-success bg-success/10 hover:bg-success/20"
+                          : ""
+                      }
+                    >
+                      <TableCell className="font-medium">
+                        {speaker.id}
+                      </TableCell>
+                      <TableCell>{speaker.name}</TableCell>
+                      <TableCell className="text-right">
+                        {speaker.similarity.toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </BodySectionContent>
           </BodySection>
         )}
 
